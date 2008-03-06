@@ -1,0 +1,14 @@
+
+# Where do your themes live?
+$theme_dir = "/var/log/nagios/blog/themes";
+
+# What's the URL of your themes directory?
+# This is vital for those themes that employ images, stylesheets, or other
+# external content pulled in from outside the page itself.
+$theme_dir_url = "$blosxom::url/themes";
+
+# Should I fall back to the blosxom template system, looking in $datadir
+# and paths beyond for template components?
+# 0 = no; 1 = yes (default)
+$fallback_to_templates = 1;
+

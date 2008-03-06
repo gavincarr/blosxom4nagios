@@ -1,0 +1,71 @@
+
+# For a basic atom feed, you only need set $default_author and $feed_yr.
+# If you do not, the plugin will exit quietly.
+# All other configuration is optional, and can be safely ignored.
+
+# Who would you like your feed to credit as the default author of each entry? 
+# Leave blank and the atomfeed plugin will attempt to use the whoami and
+# fauxami plugins
+$default_author = "root@zomojo.com";
+
+# What year was your weblog started?  This will be used 
+# to form part of your weblog's unique ID.
+$feed_yr = "2007";
+
+# ----- Optional configurable variables -----
+
+# What is the default author's URL?
+# Blank defaults to $blosxom::url
+$author_uri = "";
+
+# What is the default author's email address?
+# Leave blank to exclude.
+$author_email = 'root@zomojo.com';
+
+# Copyright statement:
+# leave blank to exclude.
+$copyright = "";
+
+# What domain should Blosxom use in ID tags?
+# Leave blank if you don't understand or for Blosxom to use the domain in $url.
+$id_domain = "";
+
+# Feed url
+# Set the URL of the atom feed here.  Defaults to $blosxom::url/index.atom
+$feed_url = "";
+
+# Icon
+# Put the URL for a site icon here (for example, your site's favicon).  Leave blank to exclude.
+$icon_url = "";
+
+# Logo
+# Set to the URL for your site logo.  Leave blank to exclude.
+$logo_url = "";
+
+# What template placeholder in your flavour template should I replace with feed-level <updated>?
+# If you are using the built-in templates, leave this alone.
+my $template_placeholder = "{{{updated}}}";
+
+# Enclosures support
+# ------------------
+
+# You can add enclosures to your atom feed by linking to them in your post
+# and giving the anchor tag a rel attribute of "enclosure".
+
+# Set $use_full_enclosures to 1 if you wish to add length and content-type
+# to your enclosures.  This function relies upon your webserver having 
+# LWP modules installed.
+$use_full_enclosures = '0';
+
+# Name of a file to cache info about your enclosures:
+$DataFile = "$blosxom::plugin_state_dir/enclosures.dat";
+
+# Stylesheet support
+# ------------------
+
+# If you have a stylesheet to associate with your atom feed, place it's URL here.
+$css_url = "";
+
+# You can specify the type of stylesheet here:
+$css_type = "text/css";
+

@@ -1,0 +1,89 @@
+#!/usr/bin/perl
+#
+# Simple perl script to create a blosxom post entry of a nagios alert
+#
+
+use strict;
+use Getopt::Std;
+use File::Basename;
+use File::Spec;
+use IO::File;
+use Log::Syslog;
+
+my @ARGV1 = ( @ARGV );
+
+my %opts = ();
+getopts('c:d:g:h:o:s:t:v', \%opts);
+my $contact = $opts{c};
+my $datetime = $opts{d};
+my $hostgroup = $opts{g};
+my $hostname = $opts{h};
+my $output = $opts{o};
+my $service = $opts{s};
+my $state = $opts{t};
+my $verbose = $opts{v};
+
+diag("ARGV1: " . join(',', @ARGV1));
+diag("ARGV2: " . join(',', @ARGV));
+
+barf("usage: " . basename($0) . " [-h <hostname>] [-g <hostgroup>] [-s <service>] [-t <state>]
+                                 [-o <serviceoutput>] [-c <contactname>] <post-directory>\n")
+  unless @ARGV;
+
+my $post_dir = shift @ARGV;
+barf("Missing posts directory '$post_dir'\n") unless -d $post_dir;
+diag("post_dir: $post_dir\n");
+
+my @filename = ();
+push @filename, $datetime if $datetime;
+push @filename, $hostname if $hostname;
+push @filename, $service  if $service;
+push @filename, $state    if $state;
+barf("Can't create output filename - aborting") unless @filename;
+
+my $filename = join('-', @filename) . '.txt';
+$filename =~ s/\s+/-/g;
+diag("filename: $filename\n");
+
+my $post_file = File::Spec->catfile( $post_dir, $filename);
+diag("post_file: $post_file\n");
+
+my $fh = IO::File->new( $filename, 'w' )
+  or barf("Cannot open output file '$post_file': $!");
+
+# Setup tags
+my @tags = ();
+push @tags, $hostname               if $hostname;
+push @tags, $hostgroup              if $hostgroup;
+push @tags, $service                if $service;
+push @tags, $state                  if $state;
+
+my $tags = join ', ', @tags         if @tags;
+diag("tags: $tags\n");
+
+# Output
+print $fh "Title: $hostname $service $state\n";
+print $fh "Hostname: $hostname\n"   if $hostname;
+print $fh "Hostgroup: $hostgroup\n" if $hostgroup;
+print $fh "Service: $service\n"     if $service;
+print $fh "State: $state\n"         if $state;
+print $fh "Date: $datetime\n"       if $datetime;
+print $fh "Contact: $contact\n"     if $contact;
+print $fh "Tags: $tags\n"           if $tags;
+print $fh "Output: $output\n"       if $output;
+
+close $fh;
+
+diag("done.\n");
+
+# For debugging, warn via syslog
+sub diag {
+  return unless $verbose;
+  warning(@_);
+}
+
+sub barf {
+  error(@_);
+  die @_;
+}
+

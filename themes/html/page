@@ -1,0 +1,31 @@
+<!-- blosxom content_type text/html; charset=utf-8 -->
+
+<!-- blosxom head -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="refresh" content="120" />
+<link rel="stylesheet" href="$theme::theme_dir_url/$flavour/main.css" type="text/css" />
+<link rel="alternate" type="application/rss+xml" title="Zomojo Blogs RSS feed" href="$url/rss" />
+<link rel="alternate" type="application/atom+xml" title="Zomojo Blogs Atom feed" href="$url/atom" />
+<title>$blog_title</title>
+</head>
+<body>
+
+<h1>$blog_title</h1>
+<p class="nav"><a href="$url/">Home</a> | <a href="/">Intranet</a> | <a href="/nagios/">Nagios</a> | <a href="$url/rss">RSS 2.0 feed</a> | <a href="$url/atom">Atom 1.0 feed</a></p>
+
+<!-- blosxom story -->
+<p class="post $blosxom::meta{state}">
+<span class="ts">[$hr:$min]</span> 
+<span class="host"><a href="$url/tags/$blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span>
+<span class="service"><a href="$url/tags/$blosxom::meta{service}">$blosxom::meta{service}</a></span> 
+<span class="state">$blosxom::meta{state}</span> : <span class="output">$blosxom::meta{output}</span>
+</p>
+
+<!-- blosxom foot -->
+</body>
+</html>
+

@@ -1,0 +1,55 @@
+body {
+  font-size: 67.5%; /* Resets 1em to 11px */
+  font-family: Verdana, Arial, Sans-Serif;
+  margin: 10px;
+  padding: 0; 
+}
+
+.nodisplay { 
+  display: none;
+}
+
+h1, h2, h3 {
+  font-family: Verdana, Arial, Sans-Serif;
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 1.2em;
+  margin: 20px 0 5px 0;
+  color: #006;
+}
+h3 {
+  font-size: 1.0em;
+  margin: 0px 0 5px 0;
+  color: #006;
+}
+
+p.post {
+  padding: 3px;
+  margin: 3px 0;
+}
+
+.CRITICAL {
+  background-color: #f66;
+}
+.WARNING {
+  background-color: #ff6;
+}
+.OK {
+  background-color: #6f6;
+}
+.UNKNOWN {
+  background-color: #f96;
+}
+
+.host, .service, .state {
+  font-weight: bold;
+}
+
+.post a {
+  color: #000;
+}
+.post a:hover {
+  color: #339;
+}
