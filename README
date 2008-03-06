@@ -1,10 +1,17 @@
+blosxom4nagios
+--------------
+
+blosxom4nagios is a lightweight single-purpose blosxom installation
+used for capturing notifications from nagios and making them via 
+atom or rss feeds.
+
 
 
 
 # 'notify-by-rss' command definition
 define command{
         command_name    notify-by-rss
-        command_line    /var/log/nagios/blog/bin/blosxom-post -h '$HOSTNAME$' -g '$HOSTGROUPNAME$' -s '$SERVICEDESC$' -t '$SERVICESTATE$' -o '$SERVICEOUTPUT$' -c '$CONTACTNAME$' -d '$DATE$ $TIME$' /var/log/nagios/blog/posts
+        command_line    /var/log/nagios/blog/bin/blosxom-post -h '$HOSTNAME$' -g '$HOSTGROUPNAME$' -s '$SERVICEDESC$' -S '$SERVICEGROUPNAME$' -t '$SERVICESTATE$' -o '$SERVICEOUTPUT$' -c '$CONTACTNAME$' -d '$DATE$ $TIME$' /var/log/nagios/blog/posts
 }
 
 

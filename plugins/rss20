@@ -1,0 +1,364 @@
+# Blosxom Plugin: rss20
+# Author(s): Gavin Carr <gavin@openfusion.com.au>
+# Version: 0.003000
+# Requires: storydate
+# Suggests: absolute, storytags, geo
+# Follows:  storydate
+
+package rss20;
+
+use strict;
+
+use Blosxom::Include qw(rss20);
+
+use vars qw(
+  $flavour
+  $author_email 
+  $author_name 
+  $webmaster_email 
+  $permalink
+  $trackback_link
+  $copyright
+  $generator
+  $category_list
+  $georss
+);
+
+# --- Configuration variables -----
+
+# What flavour string to you want to use for your feed?
+$flavour = 'rss';
+#$flavour = 'rss20';
+
+# What email address should be used as the default author email?
+# Recommended format is 'email (name)', but bare emails or mailto emails are ok too
+$author_email = 'author@example.com (A. U. Thor)';
+
+# What name should be used as the default author name?
+# Define this only if you don't want to disclose an email address in $author_email.
+# It will be ignored if $author_email is set.
+$author_name = '';
+
+# What email address should feed errors be reported to?
+# Recommended format is 'email (name)', but bare emails or mailto emails are ok too
+$webmaster_email = '';
+#$webmaster_email = 'webmaster@example.com (Web Master)';
+
+# What do your story permalinks look like?
+# This must be single-quoted, to defer evaluation; blosxom namespace applies
+$permalink = '$url$path/$fn.$default_flavour';
+
+# What link should be used for trackbacks on a story?
+# This must be single-quoted, to defer evaluation; blosxom namespace applies
+$trackback_link = '';
+# $trackback_link = '$url$path/$fn.writeback';
+# $trackback_link = '$url$path/$fn.$feedback::trackback_flavour';
+
+# Copyright statement; leave blank to omit.
+$copyright = '';
+
+# Generator that produced this feed
+$generator = "blosxom $blosxom::version";
+
+# --------------------------------
+# __END_CONFIG__
+
+$webmaster_email ||= $author_email;
+
+my $channel_indent = 8;
+my $item_indent = 12;
+
+# Escape <, >, and & to hex-encoded entities for max compatibility in text elements
+# See http://www.rssboard.org/rss-profile#data-types-characterdata
+my %escape_text = (
+  '<' => '&#x3C;',
+  '>' => '&#x3E;',
+  '&' => '&#x26;',
+);
+my $escape_text_re = join '|' => keys %escape_text;
+
+# Escape <, >, and & to standard html-encoded entities for in html elements
+my %escape_html = (
+  '<' => '&lt;',
+  '>' => '&gt;',
+  '&' => '&amp;',
+);
+my $escape_html_re = join '|' => keys %escape_html;
+
+sub start { 
+  _load_templates();
+}
+
+my $do_encode = 0;
+sub story {
+  my ($pkg, $path, $filename, $story_ref, $title_ref, $body_ref) = @_;
+
+  # Ignore flavours other than ours
+  return unless $blosxom::flavour eq $flavour;
+
+  # Don't double-encode if someone else has already done it
+  return unless $do_encode || $blosxom::encode_xml_entities;
+ 
+  # Because we're inside a loop, we set $do_encode for runs after the first
+  unless ($do_encode) {
+    $do_encode = 1;
+    $blosxom::encode_xml_entities = 0;
+  }
+
+  # Encode and reset encode_xml_entities flag
+  $$title_ref = _escape_text( $$title_ref );
+  $$body_ref  = _escape_html( $$body_ref );
+
+  $category_list = '';
+  if ($blosxom::plugins{storytags}) {
+    for (@storytags::taglist) {
+      $category_list .= qq(<category>$_</category>\n) . ' ' x $item_indent;
+    }
+  }
+
+  $georss = '';
+  if ($blosxom::plugins{geo} && $geo::latitude && $geo::longitude) {
+    $georss = qq(<georss:point>$geo::latitude $geo::longitude</georss:point>\n) .
+      ' ' x $item_indent;
+  }
+
+  return 1;
+}
+
+# --- Private subroutines
+
+sub _escape_text {
+  my ($text) = @_;
+  $text =~ s/($escape_text_re)/$escape_text{$1}/g;
+  return $text;
+}
+
+sub _escape_html {
+  my ($html) = @_;
+  $html =~ s/($escape_html_re)/$escape_html{$1}/g;
+  return $html;
+}
+
+sub _load_templates {
+  $blosxom::template{$flavour}{'content_type'} = 'text/xml; charset=$blog_encoding';
+
+  $blosxom::template{$flavour}{'date'} = "\n";
+
+  $blosxom::template{$flavour}{'head'} = <<HEAD;
+<?xml version="1.0" encoding="$blosxom::blog_encoding"?>
+<rss version="2.0"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+HEAD
+
+  if ($blosxom::plugins{geo}) {
+    $blosxom::template{$flavour}{'head'} .= 
+      qq(    xmlns:georss="http://www.georss.org/georss"\n);
+  }
+
+  $blosxom::template{$flavour}{'head'} .= <<HEAD;
+    xmlns:atom="http://www.w3.org/2005/Atom">
+
+    <channel>
+        <title>$blosxom::blog_title</title>
+        <link>$blosxom::url/</link>
+HEAD
+
+  if ($blosxom::path_info) {
+    $blosxom::template{$flavour}{'head'} .= 
+     ' ' x $channel_indent .
+     qq(<category>$blosxom::path_info</category>\n);
+  }
+  if ($blosxom::blog_description) {
+    $blosxom::template{$flavour}{'head'} .= 
+     ' ' x $channel_indent .
+      qq(<description>$blosxom::blog_description</description>\n);
+  }
+  if ($rss20::author_email) {
+    $blosxom::template{$flavour}{'head'} .= 
+     ' ' x $channel_indent .
+      qq(<managingEditor>$rss20::author_email</managingEditor>\n);
+  }
+  elsif ($rss20::author_name) {
+    $blosxom::template{$flavour}{'head'} .= 
+     ' ' x $channel_indent .
+      qq(<dc:creator>$rss20::author_name</dc:creator>\n);
+  }
+  if ($rss20::webmaster_email) {
+    $blosxom::template{$flavour}{'head'} .= 
+     ' ' x $channel_indent .
+      qq(<webMaster>$rss20::webmaster_email</webMaster>\n);
+  }
+  if ($rss20::copyright) {
+    $blosxom::template{$flavour}{'head'} .= 
+     ' ' x $channel_indent .
+      qq(<copyright>$rss20::copyright</copyright>\n);
+  }
+  my $path_info_full = $blosxom::path_info_full || "$blosxom::path_info/index.rss";
+  $blosxom::template{$flavour}{'head'} .= <<HEAD;
+        <pubDate>\$storydate::latest_rfc822</pubDate>
+        <language>$blosxom::blog_language</language>
+        <generator>$rss20::generator</generator>
+        <atom:link href="$blosxom::url$path_info_full" rel="self" type="application/rss+xml" />
+        <sy:updatePeriod>hourly</sy:updatePeriod>
+        <sy:updateFrequency>1</sy:updateFrequency>
+        <sy:updateBase>2000-01-01T12:00+00:00</sy:updateBase>
+HEAD
+
+  $blosxom::template{$flavour}{'story'} = <<STORY;
+
+        <item>
+            <title>\$title</title>
+            <link>$rss20::permalink</link>
+            <guid isPermaLink="true">$rss20::permalink</guid>
+            <pubDate>\$storydate::story_rfc822</pubDate>
+STORY
+
+  if ($rss20::trackback_link) {
+    $blosxom::template{$flavour}{'story'} .= 
+      ' ' x $item_indent .
+      qq(<comments>$rss20::trackback_link</comments>\n);
+  }
+  $blosxom::template{$flavour}{'story'} .= 
+      ' ' x $item_indent .
+      '$rss20::category_list';
+
+  # GeoRSS support
+  if ($blosxom::plugins{geo}) {
+    $blosxom::template{$flavour}{'story'} .= '$rss20::georss';
+  }
+
+  $blosxom::template{$flavour}{'story'} .= <<'STORY';
+<description>$body
+            </description>
+        </item>
+STORY
+
+  $blosxom::template{$flavour}{'foot'} = <<'FOOT';
+
+    </channel>
+</rss>
+FOOT
+
+  1;
+}
+
+
+1;
+
+__END__
+
+=head1 NAME
+
+rss20 - blosxom plugin to generate an RSS 2.0 feed of your blog
+
+=head1 DESCRIPTION
+
+rss20 is a blosxom plugin to generate an RSS 2.0 feed of your blog. It
+is self-contained, including the required flavours, and has a bunch of
+configuration variables to allow for configuration.
+
+If you're using the L<geo> plugin, rss20 will also add georss:point
+entries for any items with latitude and longitude metadata set (see 
+L<geo>).
+
+=head2 CONFIGURATION
+
+The following package variables can be configured:
+
+=over 4
+
+=item $flavour
+
+Flavour string to use for your feed (typically 'rss' or 'rss20').
+
+=item $author_email
+
+Default author email address for posts.
+
+=item $webmaster_email
+
+Email address to use for webmaster responsible for the feed (defaults 
+to $author_email).
+
+=item $permalink
+
+Story permalink. Default is '$url$path/$fn.$default_flavour'.
+Note that this value should probably be single quoted to defer
+variable evaluation until rendering time.
+
+=item $trackback_link
+
+Story trackback or comment link. Default is ''. Useful if you
+are using a comments plugin like C<writeback> or C<feedback>,
+and the format you want will be plugin-dependant.
+
+Like $permalink, this value should be single quoted to defer
+variable evaluation till rendering time.
+
+=item $copyright
+
+Default copyright clause for posts, if any.
+
+=back
+
+=head1 USAGE
+
+rss20 should be loaded relatively late, since you'll typically want
+plugins that manipulate your story content to have run already. It 
+also should be run after the 'story' or 'prefs' plugins if you want
+to use those to customise your configuration variables.
+
+Requires the L<storydate> plugin for setting up story dates in the 
+right formats, and recommends the L<absolute> plugin for absolutising
+URLs.
+
+
+=head1 SEE ALSO
+
+L<storydate>, L<absolute>, L<geo>
+
+Blosxom: http://blosxom.sourceforge.net/
+
+rss20 is based on the 'atomfeed' and 'rss10' plugins, by Rael
+Dornfest and contributors.
+
+
+=head1 BUGS
+
+Please report bugs either directly to the author or to the blosxom 
+development mailing list: <blosxom-devel@lists.sourceforge.net>.
+
+
+=head1 AUTHOR
+
+Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
+
+
+=head1 LICENSE
+
+Copyright 2007 Gavin Carr.
+
+This plugin is licensed under the same terms as blosxom itself i.e.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+=cut
+
+# vim:ft=perl

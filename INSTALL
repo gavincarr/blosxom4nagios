@@ -1,0 +1,28 @@
+
+Installation is best done as the nagios user. blosxom4nagios assumes
+it's going to be installed into /var/log/nagios/blog, and appear under
+the /nagios/blog web namespace.
+
+# su - nagios
+$ VERSION=0.001
+$ cd /var/log/nagios
+$ tar zxvf /path/to/blosxom4nagios-$VERSION.tar.gz
+$ mv blosxom4nagios-$VERSION blog
+$ cd blog
+$ bin/setup
+### then check and tweak the configs as appropriate
+$ cd config
+$ ls
+$ vi blosxom.conf atomfeed rss20
+### etc. Once done ...
+$ exit
+
+Then, as root, you need to add blosxom4nagios into your webserver config
+e.g. on RHEL/CentOS/Fedora platforms:
+
+# cd /etc/httpd/conf.d
+# ln -s /var/log/nagios/blog/config/blosxom4nagios.conf
+# service httpd restart
+
+
+
