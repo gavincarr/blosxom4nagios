@@ -13,21 +13,22 @@ use Logger::Syslog;
 my @ARGV1 = ( @ARGV );
 
 my %opts = ();
-getopts('c:d:g:h:o:s:t:v', \%opts);
+getopts('c:d:g:h:o:s:S:t:v', \%opts);
 my $contact = $opts{c};
 my $datetime = $opts{d};
 my $hostgroup = $opts{g};
 my $hostname = $opts{h};
 my $output = $opts{o};
 my $service = $opts{s};
+my $servicegroup = $opts{S};
 my $state = $opts{t};
 my $verbose = $opts{v};
 
 diag("ARGV1: " . join(',', @ARGV1));
 diag("ARGV2: " . join(',', @ARGV));
 
-barf("usage: " . basename($0) . " [-h <hostname>] [-g <hostgroup>] [-s <service>] [-t <state>]
-                                 [-o <serviceoutput>] [-c <contactname>] <post-directory>\n")
+barf("usage: " . basename($0) . " [-h <hostname>] [-g <hostgroup>] [-s <service>] [-S <servicegroup>]
+                    [-t <state>] [-o <serviceoutput>] [-c <contactname>] <post-directory>\n")
   unless @ARGV;
 
 my $post_dir = shift @ARGV;
@@ -56,7 +57,9 @@ my @tags = ();
 push @tags, $hostname               if $hostname;
 push @tags, $hostgroup              if $hostgroup;
 push @tags, $service                if $service;
+push @tags, $servicegroup           if $servicegroup;
 push @tags, $state                  if $state;
+push @tags, $contact                if $contact;
 
 my $tags = join ', ', @tags         if @tags;
 diag("tags: $tags\n");
@@ -66,6 +69,7 @@ print $fh "Title: $hostname $service $state\n";
 print $fh "Hostname: $hostname\n"   if $hostname;
 print $fh "Hostgroup: $hostgroup\n" if $hostgroup;
 print $fh "Service: $service\n"     if $service;
+print $fh "Servicegroup: $servicegroup\n" if $servicegroup;
 print $fh "State: $state\n"         if $state;
 print $fh "Date: $datetime\n"       if $datetime;
 print $fh "Contact: $contact\n"     if $contact;
