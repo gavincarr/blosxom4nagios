@@ -1,0 +1,14 @@
+
+# --- Configuration variables -----
+
+# What path prefix is used for tag-based queries?
+$config{tagroot} = "/nagios/blog/tags";
+
+# What story header to you use for your tags?
+$config{tag_header} = 'Tags';
+
+# Where is our $tag_cache file?
+$config{tag_cache_file} = "$blosxom::plugin_state_dir/tag_cache";
+
+# ---------------------------------
+

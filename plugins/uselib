@@ -1,0 +1,6 @@
+package uselib;
+
+sub start { use lib "$ENV{BLOSXOM_CONFIG_DIR}/../lib"; }
+
+1;
+

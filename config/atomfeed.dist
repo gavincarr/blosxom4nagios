@@ -6,11 +6,11 @@
 # Who would you like your feed to credit as the default author of each entry? 
 # Leave blank and the atomfeed plugin will attempt to use the whoami and
 # fauxami plugins
-$default_author = "root@zomojo.com";
+$default_author = "someone@example.com";
 
 # What year was your weblog started?  This will be used 
 # to form part of your weblog's unique ID.
-$feed_yr = "2007";
+$feed_yr = "2008";
 
 # ----- Optional configurable variables -----
 

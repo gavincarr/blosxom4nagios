@@ -1,0 +1,2 @@
+#!/bin/sh
+rsync -rltvc --exclude=posts --exclude=state --exclude-from=EXCLUDE $* * mercury:/var/log/nagios/blog

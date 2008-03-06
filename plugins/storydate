@@ -1,0 +1,317 @@
+# Blosxom Plugin: storydate
+# Author(s): Gavin Carr <gavin@openfusion.com.au>
+# (based on work by Frank Hecker <hecker@hecker.org>
+#  and Bob Schumaker <cobblers@pobox.com>)
+# Version: 0.003000
+# Documentation: See the bottom of this file or type: perldoc storydate
+
+package storydate;
+
+use strict;
+
+use vars qw(%config);
+use File::stat;
+
+# Uncomment next line to enable debug output (don't uncomment debug() lines)
+#use Blosxom::Debug debug_level => 1;
+
+# --- Configuration variables -----
+
+%config = ();
+
+# Perl modules to use for strftime, in search order
+$config{strftime_modules} = [ qw(Time::Piece Date::Format POSIX) ];
+
+# ---------------------------------
+# __END_CONFIG__
+
+# Package variables
+use vars qw(
+  $story_rfc822
+  $story_iso8601
+  $story_mtime_rfc822
+  $story_mtime_iso8601
+  $now_rfc822
+  $now_iso8601
+  $latest_rfc822
+  $latest_iso8601
+  %strftime_formats
+);
+
+%strftime_formats = (
+    rfc822      => "%a, %d %b %Y %T %z",
+    # ISO 8601 format (localtime, including time zone offset)
+    # Format is YYYY-MM-DDThh:mm:ssTZD per http://www.w3.org/TR/NOTE-datetime
+    iso8601     => "%Y-%m-%dT%T%z",
+);
+
+sub start { 
+    my $now = time();
+    $now_rfc822  = format_date('rfc822', $now);
+    $now_iso8601 = format_date('iso8601', $now);
+    # debug(1, "now_rfc822: $now_rfc822");
+    # debug(1, "now_iso8601: $now_iso8601");
+    1;
+}
+
+sub filter {
+    my ($pkg, $files, $others) = @_;
+
+    # Find the latest publish date in our stories
+    my $latest_ts = 0;
+    for (values %$files) {
+	  $latest_ts = $_ if $_ > $latest_ts;
+    }
+
+    # Format the 'latest' variables
+    $latest_rfc822  = format_date('rfc822', $latest_ts);
+    $latest_iso8601 = format_date('iso8601', $latest_ts);
+
+    return 1;
+}
+
+sub story {
+    my ($pkg, $path, $filename, $story_ref, $title_ref, $body_ref) = @_;
+
+    ($story_rfc822, $story_mtime_rfc822) 
+        = get_story_dates('rfc822', $path, $filename);
+    ($story_iso8601, $story_mtime_iso8601) 
+        = get_story_dates('iso8601', $path, $filename);
+
+    return 1;
+}
+
+# Get the 'file' (publish/official) and 'mtime' formatted dates for the given story file
+sub get_story_dates {
+    my ($format, $path, $filename) = @_; 
+    my ($file_dt, $mtime_dt) = ('', '');
+    $path ||= '';
+
+    my $story_file = "$blosxom::datadir$path/$filename.$blosxom::file_extension";
+    my $timestamp = $blosxom::files{ $story_file };
+    # debug(2, "$path/$filename timestamp: $timestamp");
+
+    if (my $stat = stat( $story_file )) {
+        if (my $mtime = $stat->mtime) {
+            # debug(2, "$path/$filename mtime: = $mtime");
+
+            $mtime_dt = format_date($format, $mtime);
+
+            $timestamp ||= $mtime;
+        }
+        else {
+            warn "storydate: cannot get mtime on story file '$story_file'\n";
+        }
+    }
+    else {
+        warn "storydate: cannot stat story file '$story_file'\n";
+    }
+
+    $file_dt = format_date($format, $timestamp) if $timestamp;
+
+    return wantarray ? ( $file_dt, $mtime_dt ) : $file_dt;
+}
+
+sub format_date {
+    my ($format, $time, $use_gmtime) = @_;
+    return unless $format;
+
+    my $date = '';
+    if ($format =~ m/%/) {
+        $date = strftime($format, $time, $use_gmtime);
+    }
+    elsif ($strftime_formats{ $format }) {
+        $date = strftime($strftime_formats{ $format }, $time, $use_gmtime);
+    }
+    # Hack to handle the fact that ISO8601 dates require a : in the timezone, which strftime doesn't support
+    if ($format eq 'iso8601') {
+        $date =~ s/(\d)(\d{2})$/$1:$2/;
+    }
+
+    return $date;
+}
+
+# strftime wrapper, using the first strftime() it finds in 'strftime_modules'
+my %cache = ();
+my $strftime_module = '';
+sub strftime {
+    my ($format, $time, $use_gmtime) = @_;
+    return unless $format && $time;
+    $use_gmtime = 0 unless defined $use_gmtime;
+  
+    # Check cache
+    my $cache_key = "$time:$use_gmtime:$format";
+    return $cache{ $cache_key } if exists $cache{ $cache_key };
+
+    # For testing
+    $strftime_module = $ENV{BLOSXOM_STORYDATE_STRFTIME_MODULE};
+
+    # Search for a strftime module, and load
+    if (! $strftime_module) {
+        for my $module (@{$config{strftime_modules}}) {
+            if (eval "require $module") {
+                $strftime_module = $module;
+                # debug(2, "strftime_module: $strftime_module");
+                last;
+            }
+        }
+        if (! $strftime_module) {
+            warn "storydate: cannot find any suitable strftime module\n";
+            return '';
+        }
+    }
+
+    my $datetime = '';
+    if ($strftime_module eq 'Time::Piece') {
+        my $t = $use_gmtime ? Time::Piece->gmtime($time) : Time::Piece->localtime($time);
+ 
+        # Seems to be a bug in Time::Piece %z handling - workaround
+        my $tz_offset = sprintf("%+03d%02d", int($t->tzoffset / 3600), ($t->tzoffset % 3600) / 60);
+        $format =~ s/%z/$tz_offset/g;
+
+        $datetime = $t->strftime( $format );
+    }
+
+    elsif ($strftime_module eq 'Date::Format') {
+        my @t = $use_gmtime ? gmtime($time) : localtime($time);
+        $datetime = Date::Format::strftime($format, \@t);
+    }
+
+    elsif ($strftime_module eq 'POSIX') {
+        my @t = $use_gmtime ? gmtime($time) : localtime($time);
+        $datetime = POSIX::strftime($format, @t);
+    }
+
+    $cache{ $cache_key } = $datetime if $datetime;
+    return $datetime;
+}
+
+
+1;
+
+__END__
+
+=head1 NAME
+
+storydate - blosxom plugin to provide story dates in various formats 
+for use by other plugins
+
+
+=head1 DESCRIPTION
+
+storydate is a blosxom plugin that provides story dates in various 
+formats for use by other plugins. It defines the following variables:
+
+=over 4
+
+=item $story_rfc822
+
+The official/publication date of the story in RFC822 format.
+
+=item $story_iso8601
+
+The official/publication date of the story in ISO8601 format.
+
+=item $story_mtime_rfc822
+
+The last modification time of the story in RFC822 format.
+
+=item $story_mtime_iso8601
+
+The last modification time of the story in ISO8601 format.
+
+=item $now_rfc822
+
+The current time in RFC822 format.
+
+=item $now_iso8601
+
+The current time in ISO8601 format.
+
+=item $latest_rfc822
+
+The latest story publication date, in RFC822 format.
+
+=item $latest_iso8601
+
+The latest story publication date, in ISO8601 format.
+
+=back
+
+In addition, storydate defines a few subroutines that might be useful
+to other plugins:
+
+=over 4
+
+=item strftime($format, $time)
+
+Returns $time, formatted according to the L<strftime(3)> format 
+$format. Requires one of the following perl modules be available to 
+provide a strftime() function: Time::Piece, Date::Format, or POSIX.
+
+=item get_story_dates($format, $path, $filename)
+
+Returns the publication date and the last modified date of the story 
+at "$path/$filename.$blosxom::file_extension", formatted according
+to the L<strftime(3)> format $format.
+
+=back
+
+
+=head1 USAGE
+
+storydate should be loaded early, before any story plugins that want
+to make use of it.
+
+
+=head1 SEE ALSO
+
+lastmodified2
+
+Blosxom: http://blosxom.sourceforge.net/
+
+
+=head1 ACKNOWLEDGEMENTS
+
+storydate is based on Frank Hecker's lastmodified2 plugin, which is 
+itself based on Bob Schumaker's lastmodified plugin.
+
+The problem with lastmodified2 is that its HTTP header functionality 
+requires that it runs very late, which makes it useless for providing
+dates to story plugins. storydate is basically just all the parts of
+lastmodified2 that can be run early pulled out into a separate plugin.
+
+
+=head1 AUTHOR
+
+Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
+
+
+=head1 LICENSE
+
+Copyright 2007, Gavin Carr.
+
+This plugin is licensed under the same terms as blosxom itself i.e.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+=cut
+
+# vim:ft=perl:sw=4
+

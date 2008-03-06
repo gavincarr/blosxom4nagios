@@ -2,10 +2,10 @@
 # --- Blosxom configuration (perl syntax) -----
 
 # What's this blog's title?
-$blog_title = "Zomojo Nagios Alerts";
+$blog_title = "Nagios Alerts";
 
 # What's this blog's description (for outgoing RSS feed)?
-$blog_description = "Alerts from the Zomojo inferno";
+$blog_description = "Alerts from the inferno";
 
 # What's this blog's primary language (for outgoing RSS feed)?
 $blog_language = "en";
@@ -43,14 +43,14 @@ $show_future_entries = 0;
 $plugin_list = "$ENV{BLOSXOM_CONFIG_DIR}/plugin_list.conf";
 
 # Where are my plugins kept?
-$plugin_dir = "/usr/share/blosxom/plugins";
+$plugin_dir = "/var/log/nagios/blog/plugins";
 
 # Where should my plugins keep their state information?
 $plugin_state_dir = "/var/log/nagios/blog/state";
 
 # Additional plugins location
 # List of directories, separated by ';' on windows, ':' everywhere else
-$plugin_path = "/home/gavin/blog/plugins";
+$plugin_path = '';
 
 # --- Static Rendering -----
 

@@ -8,7 +8,7 @@ use Getopt::Std;
 use File::Basename;
 use File::Spec;
 use IO::File;
-use Log::Syslog;
+use Logger::Syslog;
 
 my @ARGV1 = ( @ARGV );
 
@@ -48,7 +48,7 @@ diag("filename: $filename\n");
 my $post_file = File::Spec->catfile( $post_dir, $filename);
 diag("post_file: $post_file\n");
 
-my $fh = IO::File->new( $filename, 'w' )
+my $fh = IO::File->new( $post_file, 'w' )
   or barf("Cannot open output file '$post_file': $!");
 
 # Setup tags

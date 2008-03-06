@@ -8,14 +8,13 @@
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="refresh" content="120" />
 <link rel="stylesheet" href="$theme::theme_dir_url/$flavour/main.css" type="text/css" />
-<link rel="alternate" type="application/rss+xml" title="Zomojo Blogs RSS feed" href="$url/rss" />
-<link rel="alternate" type="application/atom+xml" title="Zomojo Blogs Atom feed" href="$url/atom" />
+<link rel="alternate" type="application/atom+xml" title="Nagios Atom feed" href="$url/atom" />
 <title>$blog_title</title>
 </head>
 <body>
 
 <h1>$blog_title</h1>
-<p class="nav"><a href="$url/">Home</a> | <a href="/">Intranet</a> | <a href="/nagios/">Nagios</a> | <a href="$url/rss">RSS 2.0 feed</a> | <a href="$url/atom">Atom 1.0 feed</a></p>
+<p class="nav"><a href="/nagios/">Nagios</a> | <a href="$url/">Alerts</a> | <a href="$url/atom">Atom Feed</a></p>
 
 <!-- blosxom story -->
 <p class="post $blosxom::meta{state}">

@@ -1,0 +1,11 @@
+
+
+
+# 'notify-by-rss' command definition
+define command{
+        command_name    notify-by-rss
+        command_line    /var/log/nagios/blog/bin/blosxom-post -h '$HOSTNAME$' -g '$HOSTGROUPNAME$' -s '$SERVICEDESC$' -t '$SERVICESTATE$' -o '$SERVICEOUTPUT$' -c '$CONTACTNAME$' -d '$DATE$ $TIME$' /var/log/nagios/blog/posts
+}
+
+
+

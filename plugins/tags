@@ -1,0 +1,314 @@
+# Blosxom Plugin: tags
+# Author(s): Gavin Carr <gavin@openfusion.com.au>
+# Version: 0.002000
+# Documentation: See the bottom of this file or type: perldoc tags
+
+package tags;
+
+use strict;
+use File::stat;
+
+# Uncomment next line to enable debug output (don't uncomment debug() lines)
+#use Blosxom::Debug debug_level => 2;
+
+use Blosxom::Include qw(tags);
+
+use vars qw(%config $tag_cache $tag_entries $tag_counts);
+
+# --- Configuration variables -----
+
+%config = ();
+
+# What path prefix is used for tag-based queries?
+$config{tagroot} = "/tags";
+
+# What story header to you use for your tags?
+$config{tag_header} = 'Tags';
+
+# Where is our $tag_cache file?
+$config{tag_cache_file} = "$blosxom::plugin_state_dir/tag_cache";
+
+# ---------------------------------
+# __END_CONFIG__
+
+$tag_cache = {};
+$tag_entries = {};
+$tag_counts = {};
+my $tag_cache_dirty = 0;
+
+my @path_tags;
+my $path_tags_op;
+
+sub start {
+    # Load tag_cache
+    if (-f $config{tag_cache_file}) {
+        my $fh = FileHandle->new( $config{tag_cache_file}, 'r' )
+           or warn "[tags] cannot open cache: $!";
+        {
+            local $/ = undef;
+            eval <$fh>;
+        }
+        close $fh;
+    } 
+
+    1;
+}
+
+sub entries {
+    @path_tags = ();
+    my $path_info = "/$blosxom::path_info";
+    # debug(3, "entries, path_info $path_info");
+
+    if ($path_info =~ m!^$config{tagroot}/(.*)!) {
+        $blosxom::flavour = '';
+        my $taglist = $1;
+        # debug(3, "entries, path_info matches tagroot (taglist $taglist)");
+
+        # Allow flavours appended to tags after a slash
+        # Dot-flavour versions are problematic, because tags can include dot e.g. web2.0
+        if ($taglist =~ m! /(\w+)$ !x) {
+            $blosxom::flavour = $1;
+            $taglist =~ s! /$blosxom::flavour$ !!x;
+        }
+
+        # Split individual tags out of taglist
+        if ($taglist =~ m/;/) {
+            @path_tags = split /\s*;\s*/, $taglist;
+            $path_tags_op = ';';
+        }
+        else {
+            @path_tags = split /\s*,\s*/, $taglist;
+            $path_tags_op = ',';
+        }
+        # If $path_info matches tagroot it's a virtual path, so reset
+        $blosxom::path_info = '';
+        $blosxom::flavour ||= $blosxom::default_flavour;
+    }
+
+    return 0;
+}
+
+sub filter {
+    my ($pkg, $files_ref) = @_;
+    return 1 unless @path_tags;
+
+    my %tagged = ();
+    for my $tag (@path_tags) {
+        if ($tag_entries->{$tag} && @{ $tag_entries->{$tag} }) {
+            for my $entry ( @{ $tag_entries->{$tag} } ) {
+                $tagged{"$blosxom::datadir$entry.$blosxom::file_extension"}++;
+            }
+        }
+    }
+    # debug(2, "entries tagged with " . join($path_tags_op,@path_tags) . ":\n  " .  join("\n  ", sort keys %tagged));
+
+    # Now delete all entries from $files_ref except those tagged
+    my $tag_count = scalar @path_tags;
+    for (keys %$files_ref) {
+        if ($path_tags_op eq ';') {
+            # OR semantics - delete unless at least one tag 
+            delete $files_ref->{$_} unless exists $tagged{$_};
+        }
+        else {
+            # AND semantics - delete unless ALL tags
+            delete $files_ref->{$_} unless $tagged{$_} == $tag_count;
+        }
+    }
+
+    return 1;
+}
+
+# Update tag cache on new or updated stories
+sub story {
+    my ($pkg, $path, $filename, $story_ref, $title_ref, $body_ref) = @_;
+
+    my $file = "$blosxom::datadir$path/$filename.$blosxom::file_extension";
+    unless (-f $file) {
+        warn "[tags] cannot find story file '$file'";
+        return 0;
+    }
+
+    # Check story mtime
+    my $st = stat($file) or die "bad stat: $!";
+    my $mtime = $st->mtime; 
+    if ($tag_cache->{"$path/$filename"}->{mtime} == $mtime) {
+        # debug(3, "$path/$filename found up to date in tag_cache - skipping");
+        return 1;
+    }
+
+    # mtime has changed (or story is new) - compare old and new tagsets
+    my $tags_new = $blosxom::meta{$config{tag_header}};
+    my $tags_old = $tag_cache->{"$path/$filename"}->{tags};
+    # debug(2, "tags_new: $tags_new, tags_old: $tags_old");
+
+    return 1 if defined $tags_new && defined $tags_old && $tags_old eq $tags_new;
+
+    # Update tag_cache
+    # debug(2, "updating tag_cache, mtime $mtime, tags '$tags_new'");
+    $tag_cache->{"$path/$filename"} = { mtime => $mtime, tags => $tags_new };
+    $tag_cache_dirty++;
+}
+
+# Write tag_cache to disk if updated
+sub last {
+    if ($tag_cache_dirty) {
+        # Refresh tag entries and tag counts
+        $tag_entries = {};
+        $tag_counts  = {};
+        for my $entry (keys %{$tag_cache}) {
+            next unless $tag_cache->{$entry}->{tags};
+            for (split /\s*,\s*/, $tag_cache->{$entry}->{tags}) {
+                $tag_entries->{$_} ||= [];
+                push @{ $tag_entries->{$_} }, $entry;
+                $tag_counts->{$_}++;
+            }
+        }
+
+        # Save tag caches back to $config{tag_cache_file}
+        my $fh = FileHandle->new( $config{tag_cache_file}, 'w' )
+           or warn "[tags] cannot open cache '$config{tag_cache_file}': $!" 
+             and return 0;
+        print $fh Data::Dumper->Dump([ $tag_cache, $tag_entries, $tag_counts ], 
+                                     [ qw(tag_cache tag_entries tag_counts) ]);
+        close $fh;
+    }
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+tags - blosxom plugin to read tags from story files, maintain a tag cache, 
+and allow tag-based filtering
+
+=head1 DESCRIPTION
+
+L<tags> is a blosxom plugin to read tags from story files, maintain a tag 
+cache, and allow tag-based filtering. 
+
+Tags are defined in a comma-separated list in a $config{tag_header} header 
+at the beginning of a blosxom post, with $tag_header defaulting to 'Tags'. 
+So for example, your post might look like:
+
+    My Post Title
+    Tags: dogs, cats, pets
+
+    Post text goes here ...
+
+L<tags> uses the L<metamail> plugin to parse story headers, and stores 
+the tags in a cache (in $config{tag_cache_file}, which defaults to 
+$blosxom::plugin_state_dir/tag_cache). The tag cache is only updated 
+when the mtime of the story file changes, so L<tags> should perform
+pretty well.
+
+L<tags> also supports tag-based filtering. If the blosxom $path_info 
+begins with $config{tagroot} ('/tags', by default, e.g. '/tags/dogs'), 
+then L<tags> filters the entries list to include only posts with the 
+specified tag. The following syntaxes are supported (assuming the
+default '/tags' for 'tagroot'):
+
+=over 4
+
+=item /tags/<tag> e.g. /tags/dog
+
+Show only posts with the specified tag.
+
+=item /tags/<tag1>,<tag2>[,<tag3>...] e.g. /tags/dogs,cats
+
+(Comma-separated) Show only posts with ALL of the specified tags i.e.
+AND semantics.
+
+=item /tags/<tag1>;<tag2>[;<tag3>...] e.g. /tags/dogs;cats
+
+(Comma-separated) Show only posts with ANY of the specified tags i.e.
+OR semantics.
+
+=back
+
+Tag filtering also supports a trailing flavour after the taglist,
+separated by a slash e.g.
+
+    /tags/dogs/html
+    /tags/dogs,cats/rss
+    /tags/dogs;cats;pets/atom
+
+Note that this is different to L<tagging>, which treats trailing
+components as additional tags.
+
+At this point L<tags> don't support dot-flavour paths e.g.
+
+    /tags/mysql.html
+
+The problem with this is that tags can include dots, so it's
+ambiguous how to parse C</tags/web2.0>, for instance. If you'd
+like this supported and have suggestions about how to handle
+the ambiguities, please get in touch.
+
+=head1 USAGE
+
+L<tags> should be loaded early as it modifies blosxom $path_info when 
+doing tag-based filtering. Specifically, it needs to be loaded BEFORE
+any C<entries> plugins (e.g. L<entries_index>, L<entries_cache>, 
+L<entries_timestamp>, etc.)
+
+L<tags> depends on the L<metamail> plugin to parse the tags header, 
+though, so it must be loaded AFTER L<metamail>.
+
+Also, because L<tags> does tag-based filtering, any filter plugins 
+that you want to have a global view of your entries (like 
+L<recententries>, for example) should be loaded BEFORE L<tags>. 
+
+=head1 ACKNOWLEDGEMENTS
+
+This plugin was inspired by xtaran's excellent L<tagging> plugin.
+Initially I was just looking to add caching to L<tagging>, but found
+I wanted to use a more modular approach, and wanted to do slightly 
+different filtering than L<tagging> offered as well. L<tagging> is
+still more full-featured.
+
+=head1 SEE ALSO
+
+L<tags> only handles maintaining the tags cache and doing tag-based
+filtering. For displaying tag lists in stories, see L<storytags>.
+For displaying a tagcloud, see L<tagcloud>.
+
+L<metamail> is used for the tags header parsing.
+
+See also xtaran's L<tagging> plugin, which inspired L<tags>.
+
+Blosxom: http://blosxom.sourceforge.net/
+
+=head1 AUTHOR
+
+Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
+
+=head1 LICENSE
+
+Copyright 2007, Gavin Carr.
+
+This plugin is licensed under the same terms as blosxom itself i.e.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+=cut
+
+# vim:ft=perl:sw=4
+

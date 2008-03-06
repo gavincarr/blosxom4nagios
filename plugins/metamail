@@ -1,0 +1,185 @@
+# Blosxom Plugin: metamail
+# Author(s): Gavin Carr <gavin@openfusion.com.au>
+# Version: 0.002000
+# Documentation: 'perldoc metamail'
+# Requires: metaclear
+# Follows: metaclear
+
+package metamail;
+
+use strict;
+use vars qw(%config);
+
+#use Blosxom::Debug debug_level => 1;
+
+use Blosxom::Include qw(metamail);
+
+# --- Configurable variables -----
+
+%config = ();
+
+# Headers to consider titles
+$config{title_headers} = [ qw(Title Subject) ];
+
+# Headers to keep in the body (required by later plugins, for instance)
+$config{keep_in_body_headers} = [ qw(Tags) ];
+
+# Whether to unfold (join) multi-line headers
+$config{unfold_headers} = 1;
+
+# --------------------------------
+# __END_CONFIG__
+
+sub start { 1 };
+
+sub story {
+  my($pkg, $path, $filename, $story_ref, $title_ref, $body_ref) = @_;
+
+  my %header = ();
+  my ($headers, $body) = split /\n\s*\n/, $$title_ref . "\n" . $$body_ref, 2;
+
+  my $meta = \%blosxom::meta;
+
+  # Walk the headers
+  for my $header ( split /\n(?=\S)/, $headers ) {
+    # Split header into key/value
+    my ($key, $key2, $value);
+    if ($header =~ m/:/) {
+      ($key, $value) = split /:\s*/, $header, 2;  
+    }
+    # For backwards compatibility, assume a header without a : is a title
+    else {
+      $key = $config{title_headers}->[0] || 'Title';
+      $value = $header;
+    }
+    chomp $value;
+    
+    # Unfold
+    $value =~ s/\n //g if $config{unfold_headers};
+
+    # Cache header
+    $header{$key} = $value;
+
+    # Insert into meta namespace
+    $meta->{$key} = $value;
+    # debug(1, "metamail: $key: " . $meta->{$key} . "\n");
+    # Insert lowercase/underscored version as well
+    ($key2 = lc $key) =~ s/-/_/g;
+    if ($key ne $key2) {
+      $meta->{$key2} = $value;
+      # debug(1, "metamail: $key2: " . $meta->{$key2} . "\n");
+    }
+  }
+
+  # Update $$title_ref to the first title_header we can find
+  $$title_ref = '';
+  for (@{$config{title_headers}}) {
+    $$title_ref = $header{$_} and last if $header{$_};
+  }
+
+  # Update body_ref
+  if (my @keep_headers = grep { defined $header{$_} } @{$config{keep_in_body_headers}}) {
+    $$body_ref = join("\n", map { "$_: $header{$_}" } @keep_headers) . "\n" . $body;
+  }
+  else {
+    $$body_ref = $body;
+  }
+
+  return 1;
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+metamail - an alternative to Rael's original L<meta> plugin, supporting
+mail/RFC822-style headers in posts
+
+=head1 DESCRIPTION
+
+metamail is a plugin for loading metadata from the 'headers' in a 
+blosxom post. Metadata is loaded into a %blosxom::meta hash (instead of
+into package variables like L<meta>). metamail expects posts to look like 
+RFC822-style mails i.e. a bunch of headers, where a header is a key (no 
+whitespace) followed by a colon followed by a value; then an empty line 
+as a separator; and then the post body.
+
+metamail loads all headers it finds as variables into the %blosxom::meta
+hash. It typically creates two entries for each header: the first is named 
+exactly as the key is given in the header, and the second is the key 
+converted to lowercase, and with dashes converted to underscores.
+
+So given the following headers:
+
+    Title: Test Post 1
+    Tags: test, ignore
+    URL: http://www.openfusion.net/
+
+metamail will create the following %blosxom::meta entries:
+   
+    $blosxom::meta{Title} = 'Test Post 1';
+    $blosxom::meta{title} = 'Test Post 1';
+    $blosxom::meta{Tags} = 'test, ignore';
+    $blosxom::meta{tags} = 'test, ignore';
+    $blosxom::meta{URL} = 'http://www.openfusion.net/';
+    $blosxom::meta{url} = 'http://www.openfusion.net/';
+
+For backwards compatibility purposes, L<metamail> will treat any header
+not containing a colon (which is typically the first line title) as the 
+'Title' of the post, and store it with the first key in 'title_headers'
+(default is 'Title'). L<metamail> supports the title being anywhere in 
+the headers, and will report it properly to blosxom, but any plugins 
+that look directly at the post file may still expect the title 
+(without a key) to be there in the first line, so that is currently
+still the recommended convention.
+
+=head1 USAGE
+
+This plugin requires the L<metaclear> plugin to reset the %blosxom::meta
+hash for each story, and should be loaded early, after L<metaclear>, but
+typically before all other story plugins e.g. as 05metamail. 
+
+This is an *alternative* to the L<meta> plugin, so should usually be used 
+_instead_ of L<meta>, not as well.
+
+=head1 SEE ALSO
+
+L<metaclear>, L<metadir>, L<metafile>.
+
+L<meta>, Rael Dornfest's original metadata plugin
+
+Blosxom: http://blosxom.sourceforge.net/
+
+=head1 AUTHOR
+
+Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
+
+=head1 LICENSE
+
+Copyright 2007, Gavin Carr.
+
+This plugin is licensed under the same terms as blosxom itself i.e.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+=cut
+
+# vim:ft=perl

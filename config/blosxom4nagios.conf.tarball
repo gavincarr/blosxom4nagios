@@ -9,19 +9,21 @@ AddHandler cgi-script .cgi
 Alias /nagios/blog/themes /var/log/nagios/blog/themes
 Alias /nagios/blog /var/log/nagios/blog/cgi
 <Directory /var/log/nagios/blog/cgi>
-  DirectoryIndex blosxom.cgi
+  Options +Indexes
+  DirectoryIndex blosxom4nagios.cgi
   RewriteEngine on
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} ^/nagios/blog
-  RewriteRule ^(.*)$ /nagios/blog/blosxom.cgi/$1 [L,QSA]
+  RewriteRule ^(.*)$ /nagios/blog/blosxom4nagios.cgi/$1 [L,QSA]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} ^/blog
-  RewriteRule ^(.*)$ /blog/blosxom.cgi/$1 [L,QSA]
+  RewriteRule ^(.*)$ /blog/blosxom4nagios.cgi/$1 [L,QSA]
   <FilesMatch "\.cgi$">
     Options +ExecCGI
   </FilesMatch>
+# Include "conf/mat.conf"
 </Directory>
 
 <Location /nagios/blog>
@@ -34,11 +36,11 @@ Alias /nagios/blog /var/log/nagios/blog/cgi
 #DocumentRoot /var/log/nagios/blog/cgi
 #AddHandler cgi-script .cgi
 #<Directory /var/log/nagios/blog/cgi>
-#  DirectoryIndex blosxom.cgi
+#  DirectoryIndex blosxom4nagios.cgi
 #  RewriteEngine on
 #  RewriteCond %{REQUEST_FILENAME} !-f
 #  RewriteCond %{REQUEST_FILENAME} !-d
-#  RewriteRule ^(.*)$ /blosxom.cgi/$1 [L,QSA]
+#  RewriteRule ^(.*)$ /blosxom4nagios.cgi/$1 [L,QSA]
 #  <FilesMatch "\.cgi$">
 #    Options +ExecCGI
 #  </FilesMatch>
