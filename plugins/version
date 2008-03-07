@@ -4,6 +4,8 @@ use strict;
 use File::Spec;
 use IO::File;
 
+use vars qw($version);
+
 sub start {
   my $vfile = File::Spec->catfile( $blosxom::datadir, File::Spec->updir, 'VERSION' );
   my $fh = IO::File->new( $vfile, 'r' )

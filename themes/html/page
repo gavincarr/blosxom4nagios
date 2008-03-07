@@ -32,7 +32,7 @@
 
 <!-- blosxom foot -->
 <div id="footer">
-<p>blosxom4nagios version $version::version</p>
+<p>blosxom4nagios v$version::version.</p>
 </div>
 </body>
 </html>
