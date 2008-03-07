@@ -1,2 +1,6 @@
 [+] in tag view, add the tag to the page title
+[+] add host/service tags in blosxom-post depending on whether $service is set
 [ ] work out how to prevent tags that begin with numbers from breaking things
+[ ] make sure blosxom-post works for host notifications too
+[ ] expose /tags/{host,service} in page (iconised?)
+[ ] try softening the colors?

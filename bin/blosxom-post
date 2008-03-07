@@ -60,6 +60,7 @@ push @tags, $service                if $service;
 push @tags, $servicegroup           if $servicegroup;
 push @tags, $state                  if $state;
 push @tags, $contact                if $contact;
+push @tags, $service ? 'service' : 'host';
 
 my $tags = join ', ', @tags         if @tags;
 diag("tags: $tags\n");
