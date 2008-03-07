@@ -18,6 +18,7 @@ h1 {
   font-size: 1.2em;
   margin: 20px 0 5px 0;
   color: #006;
+  text-align: center;
 }
 h3 {
   font-size: 1.0em;
@@ -28,6 +29,9 @@ h3 {
 p.post {
   padding: 3px;
   margin: 3px 0;
+}
+p.nav {
+  text-align: center;
 }
 
 .CRITICAL {
@@ -43,7 +47,7 @@ p.post {
   background-color: #f96;
 }
 
-.host, .service, .state {
+.host, .hostgroup, .service, .state {
   font-weight: bold;
 }
 
@@ -53,3 +57,10 @@ p.post {
 .post a:hover {
   color: #339;
 }
+
+#footer
+{
+  margin-top: 25px;
+  color: #999;
+}
+

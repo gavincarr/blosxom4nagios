@@ -1,0 +1,20 @@
+#!/usr/bin/env perl
+# 
+# Simple setup stuff on initial install
+#
+
+use strict;
+use File::Copy;
+
+die "No config directory found - are you running from the top-level blog directory?\n"
+  unless -d 'config';
+
+chdir 'config' or die "Cannot chdir to 'config': $!";
+
+for my $dist (glob "*.dist") {
+  my $bare = $dist;
+  $bare =~ s/\.dist$//;
+  next if -f $bare;
+  copy($dist, $bare) or die "Copy '$dist' -> '$bare' failed: $!";
+}
+

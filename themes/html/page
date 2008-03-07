@@ -14,18 +14,26 @@
 </head>
 <body>
 
-<h1>$blog_title</h1>
+<h1>$blog_title\
+</h1>
 <p class="nav"><a href="/nagios/">Nagios</a> | <a href="$url/">Alerts</a> | <a href="$url/atom">Atom Feed</a> | <a href="$url/rss">RSS Feed</a></p>
 
 <!-- blosxom story -->
 <p class="post $blosxom::meta{state}">
 <span class="ts">[$hr:$min]</span> 
-<span class="host"><a href="$url/tags/$blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span>
-<span class="service"><a href="$url/tags/$blosxom::meta{service}">$blosxom::meta{service}</a></span> 
-<span class="state">$blosxom::meta{state}</span> : <span class="output">$blosxom::meta{output}</span>
+% if ($blosxom::meta{hostgroup}) {
+<span class="hostgroup"><a href="$url/tags/$blosxom::meta{hostgroup}">$blosxom::meta{hostgroup}</a>/</span>\
+% }
+<span class="host"><a href="$url/tags/$blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> |
+<span class="service"><a href="$url/tags/$blosxom::meta{service}">$blosxom::meta{service}</a></span> |
+<span class="state"><a href="$url/tags/$blosxom::meta{state}">$blosxom::meta{state}</a></span> : 
+<span class="output">$blosxom::meta{output}</span>
 </p>
 
 <!-- blosxom foot -->
+<div id="footer">
+<p>blosxom4nagios version $version::version</p>
+</div>
 </body>
 </html>
 

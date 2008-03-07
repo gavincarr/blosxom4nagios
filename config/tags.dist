@@ -2,7 +2,7 @@
 # --- Configuration variables -----
 
 # What path prefix is used for tag-based queries?
-$config{tagroot} = "/nagios/blog/tags";
+$config{tagroot} = "/tags";
 
 # What story header to you use for your tags?
 $config{tag_header} = 'Tags';

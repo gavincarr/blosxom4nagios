@@ -74,7 +74,7 @@ print $fh "State: $state\n"         if $state;
 print $fh "Date: $datetime\n"       if $datetime;
 print $fh "Contact: $contact\n"     if $contact;
 print $fh "Tags: $tags\n"           if $tags;
-print $fh "Output: $output\n"       if $output;
+print $fh "Output: $output\n\n$output\n" if $output;
 
 close $fh;
 

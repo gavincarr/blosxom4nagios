@@ -1,0 +1,14 @@
+
+# --- Configurable variables -----
+
+# Headers to consider titles
+$config{title_headers} = [ qw(Title Subject) ];
+
+# Headers to keep in the body (required by later plugins, for instance)
+$config{keep_in_body_headers} = [];
+
+# Whether to unfold (join) multi-line headers
+$config{unfold_headers} = 1;
+
+# --------------------------------
+

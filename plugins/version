@@ -1,0 +1,20 @@
+package version;
+
+use strict;
+use File::Spec;
+use IO::File;
+
+sub start {
+  my $vfile = File::Spec->catfile( $blosxom::datadir, File::Spec->updir, 'VERSION' );
+  my $fh = IO::File->new( $vfile, 'r' )
+    or warn "Cannot read version file '$vfile'" and return;
+  $version = <$fh>;
+  $fh->close;
+  chomp $version;
+  return $version;
+}
+
+1;
+
+# vim:ft=perl
+

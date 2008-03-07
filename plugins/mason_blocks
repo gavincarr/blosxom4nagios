@@ -1,0 +1,304 @@
+# Blosxom Plugin: mason_blocks
+# Author(s): Gavin Carr <gavin@openfusion.com.au>
+# Version: 0.002001
+
+package mason_blocks;
+
+use strict;
+
+#use Blosxom::Debug debug_level => 1;
+
+# --- Configurable variables -----
+
+# None
+
+# --------------------------------
+
+sub start { 1 };
+
+sub head {
+  my($pkg, $currentdir, $head_ref) = @_;
+  munge_blocks($head_ref);
+  return 1;
+}
+
+sub story {
+  my ($pkg, $path, $filename, $story_ref, $title_ref, $body_ref) = @_;
+  munge_blocks($story_ref);
+  return 1;
+}
+
+sub foot {
+  my($pkg, $currentdir, $foot_ref) = @_;
+  munge_blocks($foot_ref);
+  return 1;
+}
+
+sub munge_blocks {
+  my ($flavour_ref) = @_;
+
+  my @flavour = ();
+  my ($doc, @if, @else, @if_blocks, @else_blocks);
+  @if = @else = @if_blocks = @else_blocks = ();
+  for (split /\n/, $$flavour_ref) {
+    # Ignore lines beginning with '%#'
+    next if m/^%\s*#/;
+
+    # Ignore if in doc block <%doc> .... </%doc> (at beginning of lines)
+    if (m!^</%doc>! && $doc) {
+      $doc = 0;
+      next;
+    } elsif ($doc) {
+      next;
+    } elsif (m!^<%doc>!) {
+      $doc = 1;
+      next;
+    }
+
+    # Minimalist version - if, } else {, } only, nesting supported
+    if (m/^%\s*if\b/) {
+      my $if = $_;
+      $if =~ s/^%\s*if\s*//;
+      $if =~ s/\s*{\s*$//;
+      # New block, record condition, and add new entries to other arrays
+      push @if, $if;
+      push @else, 0;
+      push @if_blocks,   [];
+      push @else_blocks, [];
+      next;
+    }
+    elsif (m/^%\s*\}\s*else\s*\{/) {
+      # Else at same level - set current else flag to true
+      $else[$#else] = 1;
+      next;
+    }
+    elsif (m/^%\s*\}/) {
+      # End of block - pull latest entries from all arrays
+      my $if = pop @if;
+      my $else = pop @else;
+      my $if_block = pop @if_blocks;
+      my $else_block = pop @else_blocks;
+      # debug(1, "end_block: if '$if', if block " .  scalar(@$if_block) . " lines, else block " .  scalar(@$else_block) . " lines\n");
+      # Check condition, and replace current line with appropriate flattened block
+      if (eval "$if") {
+        $_ = join "\n", @$if_block;
+      } else {
+        $_ = join "\n", @$else_block;
+      }
+    }
+    
+    # Regular line - add to @else_blocks, @if_blocks, or @flavour
+    if (@else && $else[$#else]) {
+      push @{$else_blocks[$#else_blocks]}, $_;
+    }
+    elsif (@if) {
+      push @{$if_blocks[$#if_blocks]}, $_;
+    }
+    else {
+      push @flavour, $_;
+    }
+  }
+
+  # Join flavour lines and update $$flavour_ref
+  $$flavour_ref = join "\n", @flavour;
+
+  # Support mason-style end-of-line newline escapes
+  $$flavour_ref =~ s/\\\r?\n//g;
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+mason_blocks - blosxom plugin to support simple mason-style if-blocks
+in blosxom flavours/templates
+
+=head1 SYNOPSIS
+
+    # In a flavour or template file ...
+
+    # Mason-style conditionals
+    % if ($pagetype::pagetype ne 'story') {
+    <a href="$permalink::story#comments">Comments ($feedback::count) &raquo;</a>
+    % } else {
+    <a href="$permalink::story#leave_comment">Leave a comment &raquo;</a>
+    % }
+
+    # Mason-style comments
+    %# Only show a comments section if there are comments
+    % if ($feedback::count > 0) {
+    $feedback::comments
+    % }
+
+    # Mason-style block comments
+    <%doc>
+    This is a great big
+    multi-line, extremely important
+    comment.
+    </%doc>
+
+
+=head1 DESCRIPTION
+
+mason_blocks is a blosxom plugin implementing simple conditional and
+commment blocks using mason-style syntax (as in the HTML::Mason perl
+templating system), for use in blosxom flavour and template files.
+
+=head2 CONDITIONALS
+
+mason_blocks supports simple if and if-else blocks using lines beginning
+with the '%' character (which must be the first character on the line)
+e.g.
+
+    % if ($pagetype::pagetype eq 'story') {
+    <a href="$permalink::story#leave_comment">Leave a comment &raquo;</a>
+    % }
+
+and
+
+    % if ($pagetype::pagetype ne 'story') {
+    <a href="$permalink::story#comments">Comments ($feedback::count) &raquo;</a>
+    % } else {
+    <a href="$permalink::story#leave_comment">Leave a comment &raquo;</a>
+    % }
+
+Whitespace is not significant, but braces are required and should match, 
+just as in perl. The if-conditions can comprise any valid perl condition.
+
+=head2 COMMENTS
+
+Two comment styles are also supported. Single line comments must begin with
+a '%' character, followed by optional whitespace, follwed by a '#' character,
+and continue only to the end of the line e.g.
+
+    %# This is a completely profound and illuminating comment
+    % # As is this
+
+Block comments must begin with a <%doc> token (at the beginning of a line)
+and end with a </%doc> token (also at the beginning of a line). All text
+between these two tokens is treated as a comment and not included in output.
+For example:
+
+    <%doc>
+    More enlightening profundities from your template author
+    Explaining why this stuff is as ugly as it is ...
+    </%doc>
+
+Block comments cannot be nested.
+
+=head2 VS. INTERPOLATE_FANCY
+
+mason_blocks was initially born out of my frustration with older versions 
+of interpolate_fancy not supporting nested constructs properly (though I'd
+also been frustrated with the syntax and the limits on the conditionals
+available). 
+
+I thought for an experiment I'd see how hard simple non-nested 
+conditionals using a mason-style syntax would be, and it turned out to be
+not very difficult at all. I no longer use interpolate_fancy at all - my
+limited use cases seem better met using mason_blocks.
+
+As I see it, mason_blocks has the following advantages over 
+interpolate_fancy:
+
+=over 4
+
+=item Nesting support
+
+Earlier versions of interpolate_fancy had problems with nested 
+constructs. I believe that this has been fixed in the later versions
+updated by Matthijs Kooijman (>= version 20060111). 
+
+mason_blocks fully supports nested conditionals.
+
+=item If-Else Constructs
+
+mason_blocks supports simple if-else blocks, instead of making you
+use 'if x eq 1; if x ne 1' pairs. It does not currently support 
+elsif, however.
+
+=item Full perl conditions
+
+mason_blocks allows you to use full perl conditions (including composite
+conditions) instead of being limited to simple conditions using only the
+most common operators. For instance, all of the following require hoop
+jumping with interpolate_fancy:
+
+=over 4
+
+=item if ($foo >= 3)
+
+=item if (substr($foo, 3, 1) eq 'X')
+
+=item if ($pagetype::pagetype eq 'story' && $feedback::comments > 0)
+
+=back
+
+=back
+
+mason_blocks does not provide any of interpolate_fancy's interpolation 
+or action functionality, however.
+
+
+=head1 USAGE
+
+mason_blocks should probably be loaded relatively late, since you'll
+often want to use various plugin package variables in your conditionals.
+
+It uses the 'head', 'story', and 'footer' hooks, rather than 'interpolate',
+so it should be able to be used alongside any of the interpolate plugins
+if you wish.
+
+
+=head1 SEE ALSO
+
+HTML::Mason, for the block syntax (the module is not used or required by 
+this plugin, however).
+
+Blosxom: http://blosxom.sourceforge.net/
+
+
+=head1 BUGS
+
+Please report bugs either directly to the author or to the blosxom 
+development mailing list: <blosxom-devel@lists.sourceforge.net>.
+
+
+=head1 TODO
+
+- add elsif support
+
+
+=head1 AUTHOR
+
+Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
+
+=head1 LICENSE
+
+Copyright 2007, Gavin Carr.
+
+This plugin is licensed under the same terms as blosxom itself i.e.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+=cut
+
+# vim:ft=perl

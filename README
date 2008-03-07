@@ -1,9 +1,11 @@
 blosxom4nagios
 --------------
 
-blosxom4nagios is a lightweight single-purpose blosxom installation
-used for capturing notifications from nagios and making them via 
-atom or rss feeds.
+blosxom4nagios is a special-purpose blogging application (a 
+bloglet!) used for capturing notifications from nagios and making 
+them available via atom or rss feeds. It allows you to receive
+and track nagios notifications via your RSS reader instead of
+clogging up your mailbox.
 
 
 
