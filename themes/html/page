@@ -15,6 +15,9 @@
 <body>
 
 <h1>$blog_title\
+% if ($tags::tag_list) {
+ - $tags::tag_list\
+% }
 </h1>
 <p class="nav">\
 <a href="$url/">Blosxom4Nagios</a> | \

@@ -1,7 +1,9 @@
 # Blosxom Plugin: tags
 # Author(s): Gavin Carr <gavin@openfusion.com.au>
-# Version: 0.002000
+# Version: 0.003000
 # Documentation: See the bottom of this file or type: perldoc tags
+
+use Blosxom::Include qw(tags);
 
 package tags;
 
@@ -11,13 +13,10 @@ use File::stat;
 # Uncomment next line to enable debug output (don't uncomment debug() lines)
 #use Blosxom::Debug debug_level => 2;
 
-use Blosxom::Include qw(tags);
-
-use vars qw(%config $tag_cache $tag_entries $tag_counts);
+use vars qw(%config $tag_cache $tag_entries $tag_counts $tag_list);
+%config = ();
 
 # --- Configuration variables -----
-
-%config = ();
 
 # What path prefix is used for tag-based queries?
 $config{tagroot} = "/tags";
@@ -34,6 +33,7 @@ $config{tag_cache_file} = "$blosxom::plugin_state_dir/tag_cache";
 $tag_cache = {};
 $tag_entries = {};
 $tag_counts = {};
+$tag_list = '';
 my $tag_cache_dirty = 0;
 
 my @path_tags;
@@ -61,23 +61,23 @@ sub entries {
 
     if ($path_info =~ m!^$config{tagroot}/(.*)!) {
         $blosxom::flavour = '';
-        my $taglist = $1;
-        # debug(3, "entries, path_info matches tagroot (taglist $taglist)");
+        $tag_list = $1;
+        # debug(3, "entries, path_info matches tagroot (tag_list $tag_list)");
 
         # Allow flavours appended to tags after a slash
         # Dot-flavour versions are problematic, because tags can include dot e.g. web2.0
-        if ($taglist =~ m! /(\w+)$ !x) {
+        if ($tag_list =~ m! /(\w+)$ !x) {
             $blosxom::flavour = $1;
-            $taglist =~ s! /$blosxom::flavour$ !!x;
+            $tag_list =~ s! /$blosxom::flavour$ !!x;
         }
 
-        # Split individual tags out of taglist
-        if ($taglist =~ m/;/) {
-            @path_tags = split /\s*;\s*/, $taglist;
+        # Split individual tags out of tag_list
+        if ($tag_list =~ m/;/) {
+            @path_tags = split /\s*;\s*/, $tag_list;
             $path_tags_op = ';';
         }
         else {
-            @path_tags = split /\s*,\s*/, $taglist;
+            @path_tags = split /\s*,\s*/, $tag_list;
             $path_tags_op = ',';
         }
         # If $path_info matches tagroot it's a virtual path, so reset
@@ -286,7 +286,7 @@ Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
 
 =head1 LICENSE
 
-Copyright 2007, Gavin Carr.
+Copyright 2007-2008, Gavin Carr.
 
 This plugin is licensed under the same terms as blosxom itself i.e.
 
