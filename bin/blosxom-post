@@ -65,7 +65,11 @@ my $tags = join ', ', @tags         if @tags;
 diag("tags: $tags\n");
 
 # Output
-print $fh "Title: $hostname $service $state\n";
+printf $fh "Title: %s%s %s %s\n",
+  $hostgroup ? "$hostgroup/" : '',
+  $hostname  ? $hostname : '',
+  $service   ? $service : '',
+  $state     ? $state : '';
 print $fh "Hostname: $hostname\n"   if $hostname;
 print $fh "Hostgroup: $hostgroup\n" if $hostgroup;
 print $fh "Service: $service\n"     if $service;
