@@ -14,7 +14,7 @@ $blog_language = "en";
 $blog_encoding = "UTF-8";
 
 # Where are this blog's entries kept?
-$datadir = "/var/log/nagios/blog/posts";
+$datadir = "/var/log/nagios/blosxom/posts";
 
 # What's my preferred base URL for this blog (leave blank for automatic)?
 $url = "";
@@ -43,10 +43,10 @@ $show_future_entries = 0;
 $plugin_list = "$ENV{BLOSXOM_CONFIG_DIR}/plugin_list.conf";
 
 # Where are my plugins kept?
-$plugin_dir = "/var/log/nagios/blog/plugins";
+$plugin_dir = "/var/log/nagios/blosxom/plugins";
 
 # Where should my plugins keep their state information?
-$plugin_state_dir = "/var/log/nagios/blog/state";
+$plugin_state_dir = "/var/log/nagios/blosxom/state";
 
 # Additional plugins location
 # List of directories, separated by ';' on windows, ':' everywhere else
@@ -55,7 +55,7 @@ $plugin_path = '';
 # --- Static Rendering -----
 
 # Where are this blog's static files to be created?
-$static_dir = "/var/lib/blosxom/static";
+$static_dir = "/var/log/nagios/blosxom/static";
 
 # What's my administrative password (you must set this for static rendering)?
 $static_password = "";

@@ -1,6 +1,6 @@
 
 # Where do your themes live?
-$theme_dir = "/var/log/nagios/blog/themes";
+$theme_dir = "/var/log/nagios/blosxom/themes";
 
 # What's the URL of your themes directory?
 # This is vital for those themes that employ images, stylesheets, or other

@@ -6,7 +6,7 @@
 use strict;
 use File::Copy;
 
-die "No config directory found - are you running from the top-level blog directory?\n"
+die "No config directory found - are you running from the top-level nagios/blosxom directory?\n"
   unless -d 'config';
 
 chdir 'config' or die "Cannot chdir to 'config': $!";

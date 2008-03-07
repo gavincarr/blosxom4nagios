@@ -1,41 +1,41 @@
 
 # blosxom4nagios apache config
-# Assumes you're installing nagios4blosxom in /var/log/nagios/blog
+# Assumes you're installing nagios4blosxom in /var/log/nagios/blosxom
 
 # Uncomment a section below according to your needs
 
 # Subsection blosxom using CGI
 AddHandler cgi-script .cgi
-Alias /nagios/blog/themes /var/log/nagios/blog/themes
-Alias /nagios/blog /var/log/nagios/blog/cgi
-<Directory /var/log/nagios/blog/cgi>
+Alias /nagios/blosxom/themes /var/log/nagios/blosxom/themes
+Alias /nagios/blosxom /var/log/nagios/blosxom/cgi
+<Directory /var/log/nagios/blosxom/cgi>
   Options +Indexes
   DirectoryIndex blosxom.cgi
   RewriteEngine on
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} ^/nagios/blog
-  RewriteRule ^(.*)$ /nagios/blog/blosxom.cgi/$1 [L,QSA]
+  RewriteCond %{REQUEST_URI} ^/nagios/blosxom
+  RewriteRule ^(.*)$ /nagios/blosxom/blosxom.cgi/$1 [L,QSA]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} ^/blog
-  RewriteRule ^(.*)$ /blog/blosxom.cgi/$1 [L,QSA]
+  RewriteCond %{REQUEST_URI} ^/blosxom
+  RewriteRule ^(.*)$ /blosxom/blosxom.cgi/$1 [L,QSA]
   <FilesMatch "\.cgi$">
     Options +ExecCGI
   </FilesMatch>
 # Include "conf/mat.conf"
 </Directory>
 
-<Location /nagios/blog>
-  SetEnv BLOSXOM_CONFIG_DIR /var/log/nagios/blog/config
+<Location /nagios/blosxom>
+  SetEnv BLOSXOM_CONFIG_DIR /var/log/nagios/blosxom/config
 </Location>
 
 # Virtual-host blosxom using CGI
 #<VirtualHost *:80>
-#ServerName blog.example.com
-#DocumentRoot /var/log/nagios/blog/cgi
+#ServerName nagios.example.com
+#DocumentRoot /var/log/nagios/blosxom/cgi
 #AddHandler cgi-script .cgi
-#<Directory /var/log/nagios/blog/cgi>
+#<Directory /var/log/nagios/blosxom/cgi>
 #  DirectoryIndex blosxom.cgi
 #  RewriteEngine on
 #  RewriteCond %{REQUEST_FILENAME} !-f

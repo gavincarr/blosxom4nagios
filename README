@@ -1,7 +1,7 @@
 blosxom4nagios
 --------------
 
-blosxom4nagios is a special-purpose blogging application (a 
+blosxom4nagios is a special-purpose blosxom application (a 
 bloglet!) used for capturing notifications from nagios and making 
 them available via atom or rss feeds. It allows you to receive
 and track nagios notifications via your RSS reader instead of
@@ -13,7 +13,7 @@ clogging up your mailbox.
 # 'notify-by-rss' command definition
 define command{
         command_name    notify-by-rss
-        command_line    /var/log/nagios/blog/bin/blosxom-post -h '$HOSTNAME$' -g '$HOSTGROUPNAME$' -s '$SERVICEDESC$' -S '$SERVICEGROUPNAME$' -t '$SERVICESTATE$' -o '$SERVICEOUTPUT$' -c '$CONTACTNAME$' -d '$DATE$ $TIME$' /var/log/nagios/blog/posts
+        command_line    /var/log/nagios/blosxom/bin/blosxom-post -h '$HOSTNAME$' -g '$HOSTGROUPNAME$' -s '$SERVICEDESC$' -S '$SERVICEGROUPNAME$' -t '$SERVICESTATE$' -o '$SERVICEOUTPUT$' -c '$CONTACTNAME$' -d '$DATE$ $TIME$' /var/log/nagios/blosxom/posts
 }
 
 
