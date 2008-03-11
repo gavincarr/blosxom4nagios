@@ -4,3 +4,4 @@
 [ ] make sure blosxom-post works for host notifications too
 [ ] expose /tags/{host,service} in page (iconised?)
 [ ] try softening the colors?
+[ ] add some kind of cron file to prune old posts

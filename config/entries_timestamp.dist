@@ -1,8 +1,6 @@
 
 # --- Configurable variables -----
 
-my %config = ();
-
 # Where should I store the entries_timestamp index file?
 # IMO timestamps are metadata rather than state, but you may well not care.
 #$config{meta_dir} = "$blosxom::datadir/../meta";
