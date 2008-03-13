@@ -17,13 +17,11 @@ h1, h2, h3 {
 h1 {
   font-size: 1.2em;
   margin: 20px 0 5px 0;
-  color: #006;
   text-align: center;
 }
 h3 {
   font-size: 1.0em;
   margin: 0px 0 5px 0;
-  color: #006;
 }
 
 p.post {
@@ -34,33 +32,12 @@ p.nav {
   text-align: center;
 }
 
-.CRITICAL {
-  background-color: #f66;
-}
-.WARNING {
-  background-color: #ff6;
-}
-.OK {
-  background-color: #6f6;
-}
-.UNKNOWN {
-  background-color: #f96;
-}
-
 .host, .hostgroup, .service, .state {
   font-weight: bold;
-}
-
-.post a {
-  color: #000;
-}
-.post a:hover {
-  color: #339;
 }
 
 #footer
 {
   margin-top: 25px;
-  color: #999;
 }
 

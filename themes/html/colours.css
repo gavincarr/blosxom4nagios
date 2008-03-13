@@ -1,0 +1,22 @@
+h1, h2, h3 { color: #006; }
+
+.post a { color: #000; }
+.post a:hover { color: #339; }
+#footer { color: #999; }
+
+.DOWN {
+  background-color: #aaf;
+}
+.CRITICAL {
+  background-color: #f66;
+}
+.WARNING {
+  background-color: #ff6;
+}
+.OK, .UP {
+  background-color: #6f6;
+}
+.UNKNOWN {
+  background-color: #f96;
+}
+

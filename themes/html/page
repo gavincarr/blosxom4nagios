@@ -8,6 +8,7 @@
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="refresh" content="120" />
 <link rel="stylesheet" href="$theme::theme_dir_url/$flavour/main.css" type="text/css" />
+<link rel="stylesheet" href="$theme::theme_dir_url/$flavour/colours.css" type="text/css" />
 <link rel="alternate" type="application/atom+xml" title="Nagios Atom feed" href="$url/atom" />
 <link rel="alternate" type="application/rss+xml" title="Nagios RSS feed" href="$url/rss" />
 <title>$blog_title</title>
@@ -33,7 +34,9 @@
 <span class="hostgroup"><a href="$url/tags/$blosxom::meta{hostgroup}">$blosxom::meta{hostgroup}</a>/</span>\
 % }
 <span class="host"><a href="$url/tags/$blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> |
+% if ($blosxom::meta{service}) {
 <span class="service"><a href="$url/tags/$blosxom::meta{service}">$blosxom::meta{service}</a></span> |
+% }
 <span class="state"><a href="$url/tags/$blosxom::meta{state}">$blosxom::meta{state}</a></span> : 
 <span class="output">$blosxom::meta{output}</span>
 </p>
