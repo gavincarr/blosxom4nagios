@@ -165,9 +165,6 @@ $static_dir =~ s!/$!!;
 # Fix depth to take into account datadir's path
 $depth += ( $datadir =~ tr[/][] ) - 1 if $depth;
 
-# Global variable to be used in head/foot.{flavour} templates
-$path_info = '';
-
 if (    !$ENV{GATEWAY_INTERFACE}
     and param('-password')
     and $static_password
@@ -186,36 +183,41 @@ my @path_info = split m{/}, path_info() || param('path');
 $path_info_full = join '/', @path_info;      # Equivalent to $ENV{PATH_INFO}
 shift @path_info;
 
-while ( $path_info[0]
-    and $path_info[0] =~ /^[a-zA-Z].*$/
-    and $path_info[0] !~ /(.*)\.(.*)/ )
-{
+# Flavour specified by ?flav={flav} or index.{flav}
+$flavour = '';
+if (! ($flavour = param('flav'))) {
+    if ( $path_info[$#path_info] =~ /(.+)\.(.+)$/ ) {
+       $flavour = $2;
+        pop @path_info if $1 eq 'index';
+    }
+}
+$flavour ||= $default_flavour;
+
+# Global variable to be used in head/foot.{flavour} templates
+$path_info = '';
+# Add all @path_info elements to $path_info till we come to one that could be a year
+while ( $path_info[0] && $path_info[0] !~ /^(19|20)\d{2}$/) {
     $path_info .= '/' . shift @path_info;
 }
 
-# Flavour specified by ?flav={flav} or index.{flav}
-$flavour = '';
+# Pull date elements out of path
+if ($path_info[0] && $path_info[0] =~ /^(19|20)\d{2}$/) {
+  $path_info_yr = shift @path_info;
+  if ($path_info[0] && ( $path_info[0] =~ /^(0\d|1[012])$/ || exists $month2num{ ucfirst lc $path_info_mo })) {
+    $path_info_mo = shift @path_info;
+    # Map path_info_mo to numeric $path_info_mo_num
+    $path_info_mo_num = $path_info_mo =~ /^\d{2}$/ ? $path_info_mo : $month2num{ ucfirst lc $path_info_mo };
+    if ($path_info[0] && $path_info[0] =~ /^[0123]\d$/) {
+      $path_info_da = shift @path_info;
+    }
+  }
+}
 
-if ( $path_info[$#path_info] =~ /(.+)\.(.+)$/ ) {
-    $flavour = $2;
-    $path_info .= "/$1.$2" if $1 ne 'index';
-    pop @path_info;
-}
-else {
-    $flavour = param('flav') || $default_flavour;
-}
+# Add remaining path elements to $path_info
+$path_info .= '/' . join('/', @path_info);
 
 # Strip spurious slashes
 $path_info =~ s!(^/*)|(/*$)!!g;
-
-# Date fiddling
-( $path_info_yr, $path_info_mo, $path_info_da ) = @path_info;
-$path_info_mo_num
-    = $path_info_mo
-    ? ( $path_info_mo =~ /\d{2}/
-    ? $path_info_mo
-    : ( $month2num{ ucfirst( lc $path_info_mo ) } || undef ) )
-    : undef;
 
 # Define standard template subroutine, plugin-overridable at Plugins: Template
 $template = sub {
