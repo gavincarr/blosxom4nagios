@@ -32,7 +32,7 @@ p.nav {
   text-align: center;
 }
 
-.type, .host, .hostgroup, .service, .state {
+.type, .host, .hostgroup, .service, .servicegroup, .state {
   font-weight: bold;
 }
 .type {

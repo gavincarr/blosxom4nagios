@@ -66,8 +66,8 @@
 
 <!-- blosxom foot -->
 <div id="footer">
-<p>blosxom4nagios v$version::version.</p>
 <p><a href="http://blosxom.sourceforge.net/" title="Powered by Blosxom"><img src="$url/images/pb_blosxom.gif" width="90" height="33" /></a></p>
+<p>blosxom4nagios v$version::version.</p>
 </div>
 </body>
 </html>
