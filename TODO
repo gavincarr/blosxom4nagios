@@ -5,4 +5,4 @@
 [+] expose /tags/{host,service} in page (iconised?)
 [+] add service groups to page
 [+] figure out how to handle the icons nicely
-[ ] add a Powered by Blosxom graphic in footer
+[+] add a Powered by Blosxom graphic in footer
