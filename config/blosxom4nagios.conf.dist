@@ -7,6 +7,7 @@
 # Subsection blosxom using CGI
 AddHandler cgi-script .cgi
 Alias /nagios/blosxom/themes /var/log/nagios/blosxom/themes
+Alias /nagios/blosxom/images /var/log/nagios/blosxom/images
 Alias /nagios/blosxom /var/log/nagios/blosxom/cgi
 <Directory /var/log/nagios/blosxom/cgi>
   Options +Indexes

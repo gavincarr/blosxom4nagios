@@ -32,8 +32,11 @@ p.nav {
   text-align: center;
 }
 
-.host, .hostgroup, .service, .state {
+.type, .host, .hostgroup, .service, .state {
   font-weight: bold;
+}
+.type {
+  padding: 0 2px;
 }
 
 #footer
@@ -41,3 +44,8 @@ p.nav {
   margin-top: 25px;
 }
 
+img {
+  border: 0;
+  padding: 0 3px;
+  margin: 0;
+}
