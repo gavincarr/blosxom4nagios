@@ -1,0 +1,20 @@
+package b4n;
+
+use strict;
+use Blosxom::Include qw(b4n);
+
+use vars qw(%config);
+
+# --------------------------------
+# Configuration variables
+
+$config{use_icons} = 0;
+
+# --------------------------------
+# __END_CONFIG__
+
+sub start { 1 }
+
+1;
+
+

@@ -21,7 +21,7 @@
 % }
 </h1>
 <p class="nav">\
-% if (0) {
+% if ($b4n::config{use_icons}) {
 <a href="$url/" title="Blosxom4Nagios Home"><img src="$url/images/house.png" height="16" width="16" /></a> \
 <a href="/nagios/" title="Nagios"><img src="$url/images/nagios.ico" height="16" width="16" /></a> \
 <a href="$url/atom" title="Atom Feed"><img src="$url/images/feed.png" height="16" width="16" /></a> \
@@ -37,18 +37,18 @@
 <!-- blosxom story -->
 <p class="post $blosxom::meta{state}">
 <span class="ts">[$hr:$min]</span> 
-% if (0) {
-% if ($blosxom::meta{service}) {
+% if ($b4n::config{use_icons}) {
+%   if ($blosxom::meta{service}) {
 <a href="$url/tags/service" title="All Services"><img src="$url/images/cog.png" height="16" width="16" /></a>
-% } else {
+%   } else {
 <a href="$url/tags/host" title="All Hosts"><img src="$url/images/server.png" height="16" width="16" /></a>
-% }
+%   }
 % } else {
-% if ($blosxom::meta{service}) {
+%   if ($blosxom::meta{service}) {
 <span class="type"><a href="$url/tags/service" title="All Services">[S]</a></span> \
-% } else {
+%   } else {
 <span class="type"><a href="$url/tags/service" title="All Hosts">[H]</a></span> \
-% }
+%   }
 % }
 % if ($blosxom::meta{hostgroup}) {
 <span class="hostgroup"><a href="$url/tags/$blosxom::meta{hostgroup}" title="Hostgroup $blosxom::meta{hostgroup}">$blosxom::meta{hostgroup}</a>/</span>\
