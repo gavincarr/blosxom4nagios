@@ -64,3 +64,19 @@ can do queries like:
   http://www.example.com/nagios/blosxom/2008/03/tags/CRITICAL
 
 
+
+Author and Credits
+------------------
+
+Gavin Carr <gavin@openfusion.com.au> is the author of blosxom4nagios.
+
+Blosxom (http://blosxom.sourceforge.net/) was originally written by Rael 
+Dornfest, and is now maintained by the Blosxom Sourceforge team 
+<blosxom-devel@lists.sourceforge.net>.
+
+Nagios (http://www.nagios.org/) is written by Ethan Galstad 
+<nagios@nagios.org> and contributors.
+
+The icons used in icon-mode are from the FamFamFam Silk Icons collection
+(http://www.famfamfam.com/lab/icons/silk/).
+
