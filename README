@@ -7,14 +7,60 @@ them available via atom or rss feeds. It allows you to receive
 and track nagios notifications via your RSS reader instead of
 clogging up your mailbox.
 
+See the INSTALL file for installation docs.
 
 
 
-# 'notify-by-rss' command definition
-define command{
-        command_name    notify-by-rss
-        command_line    /var/log/nagios/blosxom/bin/blosxom-post -h '$HOSTNAME$' -g '$HOSTGROUPNAME$' -s '$SERVICEDESC$' -S '$SERVICEGROUPNAME$' -t '$SERVICESTATE$' -o '$SERVICEOUTPUT$' -c '$CONTACTNAME$' -d '$DATE$ $TIME$' /var/log/nagios/blosxom/posts
-}
+Usage
+-----
 
+blosxom4nagios is usually configured under the /nagios/blosxom
+url namespace (or /blosxom for a dedicated nagios virtualhost).
+If your server www.example.com, your main blosxom4nagios page is
+typically:
+
+  http://www.example.com/nagios/blosxom/
+
+which will give you a page showing the 100 most recent host and
+service notifications you have received. You can turn any
+blosxom4nagios page into a feed version by appending 'atom' or
+'rss' to the page url, so feeds for that page are available at:
+
+  http://www.example.com/nagios/blosxom/atom
+  http://www.example.com/nagios/blosxom/rss
+
+All notifications are tagged with 'host' for host notifications,
+and 'service' for service notifications, so you can restrict your
+view to one or the other by specifying a tag to view e.g.
+
+  http://www.example.com/nagios/blosxom/tags/host
+  http://www.example.com/nagios/blosxom/tags/service
+  http://www.example.com/nagios/blosxom/tags/host/atom
+  http://www.example.com/nagios/blosxom/tags/service/rss
+
+Notifications are also tagged with all of the following that are
+available: hostgroup, hostname, servicegroup, servicename, nagios
+state (OK/WARNING/CRITICAL/UNKNOWN/UP/DOWN), and nagios contact,
+so all of the following filter your notifications in different
+ways:
+
+  http://www.example.com/nagios/blosxom/tags/nagiosadmin
+  http://www.example.com/nagios/blosxom/tags/hostgroup1
+  http://www.example.com/nagios/blosxom/tags/myhost
+  http://www.example.com/nagios/blosxom/tags/servicegroup2
+  http://www.example.com/nagios/blosxom/tags/randomservice
+  http://www.example.com/nagios/blosxom/tags/CRITICAL
+
+Blosxom4nagios also supports year/month/date url filtering as 
+well, so to see just the notifications for particular dates you 
+can do queries like:
+
+  http://www.example.com/nagios/blosxom/2008/03
+  http://www.example.com/nagios/blosxom/2008/tags/nagiosadmin
+  http://www.example.com/nagios/blosxom/tags/hostgroup1/2008/03
+  http://www.example.com/nagios/blosxom/tags/myhost/2008/03/14
+  http://www.example.com/nagios/blosxom/tags/servicegroup2/2008/03/14/atom
+  http://www.example.com/nagios/blosxom/2008/tags/randomservice/rss
+  http://www.example.com/nagios/blosxom/2008/03/tags/CRITICAL
 
 
