@@ -17,6 +17,7 @@ $ vi blosxom.conf atomfeed rss20
 ### etc. Once done ...
 $ exit
 
+
 Then, as root, you need to add blosxom4nagios into your webserver config
 e.g. on RHEL/CentOS/Fedora platforms:
 
@@ -25,4 +26,24 @@ e.g. on RHEL/CentOS/Fedora platforms:
 # service httpd restart
 
 
+
+Include the 'commands_blosxom.cfg' file from your main nagios.cfg file:
+
+  cfg_file=/var/log/nagios/blosxom/config/commands_blosxom.cfg
+
+and then the 'host-notify-via-blosxom' and 'notify-via-blosxom' notify commands 
+are available to use in your contact definitions e.g.
+
+  define contact{
+        contact_name                    nagios
+        alias                           Nagios Admin
+        service_notification_period     24x7
+        host_notification_period        24x7
+        service_notification_options    w,u,c,r
+        host_notification_options       d,u,r
+        service_notification_commands   notify-via-blosxom
+        host_notification_commands      host-notify-via-blosxom
+        }
+
+And remember to restart nagios after your changes! ;-)
 
