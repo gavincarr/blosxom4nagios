@@ -53,8 +53,9 @@
 % if ($blosxom::meta{hostgroup}) {
 <span class="hostgroup"><a href="$url/tags/$blosxom::meta{hostgroup}" title="Hostgroup $blosxom::meta{hostgroup}">$blosxom::meta{hostgroup}</a>/</span>\
 % }
-<span class="host"><a href="$url/tags/$blosxom::meta{hostname}" title="Host $blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> |
+<span class="host"><a href="$url/tags/$blosxom::meta{hostname}" title="Host $blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> \
 % if ($blosxom::meta{service}) {
+| \
 %   if ($blosxom::meta{servicegroup}) {
 <span class="servicegroup"><a href="$url/tags/$blosxom::meta{servicegroup}" title="Servicegroup $blosxom::meta{servicegroup}">$blosxom::meta{servicegroup}</a>/</span>\
 %   }
