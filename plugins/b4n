@@ -3,12 +3,12 @@ package b4n;
 use strict;
 use Blosxom::Include qw(b4n);
 
-use vars qw(%config);
+use vars qw(%config %image);
 
 # --------------------------------
 # Configuration variables
 
-$config{use_icons} = 0;
+$config{use_icons} = 1;
 
 # --------------------------------
 # __END_CONFIG__

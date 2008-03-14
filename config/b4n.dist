@@ -2,7 +2,7 @@
 # --------------------------------
 # Configuration variables
 
-$config{use_icons} = 0;
+$config{use_icons} = 1;
 
 # --------------------------------
 
