@@ -53,9 +53,8 @@
 % if ($blosxom::meta{hostgroup}) {
 <span class="hostgroup"><a href="$url/tags/$blosxom::meta{hostgroup}" title="Hostgroup $blosxom::meta{hostgroup}">$blosxom::meta{hostgroup}</a>/</span>\
 % }
-<span class="host"><a href="$url/tags/$blosxom::meta{hostname}" title="Host $blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> \
+<span class="host"><a href="$url/tags/$blosxom::meta{hostname}" title="Host $blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> | \
 % if ($blosxom::meta{service}) {
-| \
 %   if ($blosxom::meta{servicegroup}) {
 <span class="servicegroup"><a href="$url/tags/$blosxom::meta{servicegroup}" title="Servicegroup $blosxom::meta{servicegroup}">$blosxom::meta{servicegroup}</a>/</span>\
 %   }
@@ -64,9 +63,9 @@
 % if ($b4n::config{use_icons}) {
 <span class="state"><a href="$url/tags/$blosxom::meta{state}" title="$blosxom::meta{state} State"><img src="$url/images/state_$blosxom::meta{state}.png" height="16" width="16" /></a></span> \
 % } else {
-| <span class="state"><a href="$url/tags/$blosxom::meta{state}" title="$blosxom::meta{state} State">$blosxom::meta{state}</a></span> : \
+| <span class="state"><a href="$url/tags/$blosxom::meta{state}" title="$blosxom::meta{state} State">$blosxom::meta{state}</a></span> \
 % }
-<span class="output">$blosxom::meta{output}</span>
+: <span class="output">$blosxom::meta{output}</span>
 </p>
 
 <!-- blosxom foot -->
