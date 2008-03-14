@@ -222,8 +222,8 @@ AND semantics.
 
 =item /tags/<tag1>;<tag2>[;<tag3>...] e.g. /tags/dogs;cats
 
-(Comma-separated) Show only posts with ANY of the specified tags i.e.
-OR semantics.
+(Semicolon-separated) Show only posts with ANY of the specified tags 
+i.e.  OR semantics.
 
 =back
 
