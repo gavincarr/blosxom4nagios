@@ -203,10 +203,14 @@ while ( $path_info[0] && $path_info[0] !~ /^(19|20)\d{2}$/) {
 # Pull date elements out of path
 if ($path_info[0] && $path_info[0] =~ /^(19|20)\d{2}$/) {
   $path_info_yr = shift @path_info;
-  if ($path_info[0] && ( $path_info[0] =~ /^(0\d|1[012])$/ || exists $month2num{ ucfirst lc $path_info_mo })) {
+  if ($path_info[0] && 
+     ($path_info[0] =~ /^(0\d|1[012])$/ || 
+      exists $month2num{ ucfirst lc $path_info_mo })) {
     $path_info_mo = shift @path_info;
     # Map path_info_mo to numeric $path_info_mo_num
-    $path_info_mo_num = $path_info_mo =~ /^\d{2}$/ ? $path_info_mo : $month2num{ ucfirst lc $path_info_mo };
+    $path_info_mo_num = $path_info_mo =~ /^\d{2}$/
+      ? $path_info_mo
+      : $month2num{ ucfirst lc $path_info_mo };
     if ($path_info[0] && $path_info[0] =~ /^[0123]\d$/) {
       $path_info_da = shift @path_info;
     }
