@@ -1,2 +1,2 @@
 #!/bin/sh
-rsync -rltvc --exclude=posts --exclude=state --exclude-from=EXCLUDE $2 $3 * $1:/var/log/nagios/blosxom
+rsync -rltvcO --exclude=posts --exclude=state --exclude-from=EXCLUDE $2 $3 * $1:/var/log/nagios/blosxom
