@@ -8,6 +8,8 @@
 [+] add a Powered by Blosxom graphic in footer
 [+] update README with usage examples
 [+] add a LICENCE file
+[ ] add unreachable host state to theme
 [ ] look into /tags/one,two weirdness
 [ ] look into making blosxom-post tagging pluggable, so people can add arbitrary tags 
     of their own e.g. contactgroups, more complex hostgroups/servicegroups etc.
+[ ] look into per-user segmentation at the web interface level

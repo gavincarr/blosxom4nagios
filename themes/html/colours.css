@@ -4,6 +4,9 @@ h1, h2, h3 { color: #006; }
 .post a:hover { color: #339; }
 #footer { color: #999; }
 
+.UNREACHABLE {
+  background-color: #f9f;
+}
 .DOWN {
   background-color: #aaf;
 }
