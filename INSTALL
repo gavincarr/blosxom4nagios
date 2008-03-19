@@ -4,7 +4,7 @@ it's going to be installed into /var/log/nagios/blosxom, and appear under
 the /nagios/blosxom web namespace.
 
 # su - nagios
-$ VERSION=0.001
+$ VERSION=0.x.y
 $ cd /var/log/nagios
 $ tar zxvf /path/to/blosxom4nagios-$VERSION.tar.gz
 $ mv blosxom4nagios-$VERSION blosxom

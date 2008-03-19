@@ -5,31 +5,29 @@
 # Uncomment a section below according to your needs
 
 # Subsection blosxom using CGI
-AddHandler cgi-script .cgi
-Alias /nagios/blosxom/themes /var/log/nagios/blosxom/themes
-Alias /nagios/blosxom/images /var/log/nagios/blosxom/images
-Alias /nagios/blosxom /var/log/nagios/blosxom/cgi
-<Directory /var/log/nagios/blosxom/cgi>
-  Options +Indexes
-  DirectoryIndex blosxom.cgi
-  RewriteEngine on
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} ^/nagios/blosxom
-  RewriteRule ^(.*)$ /nagios/blosxom/blosxom.cgi/$1 [L,QSA]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_URI} ^/blosxom
-  RewriteRule ^(.*)$ /blosxom/blosxom.cgi/$1 [L,QSA]
-  <FilesMatch "\.cgi$">
-    Options +ExecCGI
-  </FilesMatch>
-# Include "conf/mat.conf"
-</Directory>
-
-<Location /nagios/blosxom>
-  SetEnv BLOSXOM_CONFIG_DIR /var/log/nagios/blosxom/config
-</Location>
+#AddHandler cgi-script .cgi
+#Alias /nagios/blosxom/themes /var/log/nagios/blosxom/themes
+#Alias /nagios/blosxom/images /var/log/nagios/blosxom/images
+#Alias /nagios/blosxom /var/log/nagios/blosxom/cgi
+#<Directory /var/log/nagios/blosxom/cgi>
+#  Options +Indexes
+#  DirectoryIndex blosxom.cgi
+#  RewriteEngine on
+#  RewriteCond %{REQUEST_FILENAME} !-f
+#  RewriteCond %{REQUEST_FILENAME} !-d
+#  RewriteCond %{REQUEST_URI} ^/nagios/blosxom
+#  RewriteRule ^(.*)$ /nagios/blosxom/blosxom.cgi/$1 [L,QSA]
+#  RewriteCond %{REQUEST_FILENAME} !-f
+#  RewriteCond %{REQUEST_FILENAME} !-d
+#  RewriteCond %{REQUEST_URI} ^/blosxom
+#  RewriteRule ^(.*)$ /blosxom/blosxom.cgi/$1 [L,QSA]
+#  <FilesMatch "\.cgi$">
+#    Options +ExecCGI
+#  </FilesMatch>
+#</Directory>
+#<Location /nagios/blosxom>
+#  SetEnv BLOSXOM_CONFIG_DIR /var/log/nagios/blosxom/config
+#</Location>
 
 # Virtual-host blosxom using CGI
 #<VirtualHost *:80>
