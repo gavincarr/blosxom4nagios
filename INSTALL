@@ -1,7 +1,16 @@
 
-Installation is best done as the nagios user. blosxom4nagios assumes
-it's going to be installed into /var/log/nagios/blosxom, and appear under
-the /nagios/blosxom web namespace.
+Blosxom4Nagios requires a couple of non-standard CPAN modules, so the first
+thing to do is install them, either from CPAN (http://www.cpan.org/), or
+via your package management system. You need to install:
+
+- Filter::Simple
+- Logger::Syslog
+
+
+Blosxom4Nagios installation itself is best done as the nagios user. 
+Blosxom4Nagios assumes it's going to be installed into /var/log/nagios/blosxom, 
+and appear under the /nagios/blosxom web namespace.
+
 
 # su - nagios
 $ VERSION=0.x.y
