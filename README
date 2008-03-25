@@ -16,8 +16,8 @@ Usage
 
 blosxom4nagios is usually configured under the /nagios/blosxom
 url namespace (or /blosxom for a dedicated nagios virtualhost).
-If your server www.example.com, your main blosxom4nagios page is
-typically:
+If your server is www.example.com, then your main blosxom4nagios 
+page is typically:
 
   http://www.example.com/nagios/blosxom/
 

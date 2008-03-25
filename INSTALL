@@ -8,7 +8,7 @@ via your package management system. You need to install:
 
 
 Blosxom4Nagios installation itself is best done as the nagios user. 
-Blosxom4Nagios assumes it's going to be installed into /var/log/nagios/blosxom, 
+Blosxom4Nagios assumes it's going to be installed into /var/log/nagios/blosxom,
 and appear under the /nagios/blosxom web namespace.
 
 
@@ -33,6 +33,12 @@ e.g. on RHEL/CentOS/Fedora platforms:
 # cd /etc/httpd/conf.d
 # ln -s /var/log/nagios/blosxom/config/blosxom4nagios.conf
 # service httpd restart
+
+And you also need to make the /var/log/nagios/blosxom/state directory
+writeable by the user your webserver runs as e.g.:
+
+# chgrp apache /var/log/nagios/blosxom/state
+# chmod g+ws /var/log/nagios/blosxom/state
 
 
 
