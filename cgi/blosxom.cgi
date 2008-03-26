@@ -87,7 +87,6 @@ use File::Find;
 use File::stat;
 use Time::Local;
 use CGI qw/:standard :netscape/;
-use URI::Escape qw(uri_unescape);
 
 $version = "2.0.2";
 
@@ -144,7 +143,9 @@ my $fh = new FileHandle;
 @num2month = sort { $month2num{$a} <=> $month2num{$b} } keys %month2num;
 
 # Use the stated preferred URL or figure it out automatically
-$url ||= uri_unescape( url( -path_info => 1 ) );
+$url ||= url( -path_info => 1 );
+# Unescape %XX hex codes (from URI::Escape::uri_unescape)
+$url =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;      
 $url =~ s/^included:/http:/ if $ENV{SERVER_PROTOCOL} eq 'INCLUDED';
 
 # NOTE: Since v3.12, it looks as if CGI.pm misbehaves for SSIs and
