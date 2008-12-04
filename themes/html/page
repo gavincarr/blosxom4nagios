@@ -50,12 +50,12 @@
 <span class="type"><a href="$url/tags/service" title="All Hosts">[H]</a></span> \
 %   }
 % }
-% if ($blosxom::meta{hostgroup}) {
+% if ($blosxom::meta{hostgroup} && $blosxom::meta{hostgroup} ne '$HOSTGROUPNAME$') {
 <span class="hostgroup"><a href="$url/tags/$blosxom::meta{hostgroup}" title="Hostgroup $blosxom::meta{hostgroup}">$blosxom::meta{hostgroup}</a>/</span>\
 % }
 <span class="host"><a href="$url/tags/$blosxom::meta{hostname}" title="Host $blosxom::meta{hostname}">$blosxom::meta{hostname}</a></span> | \
 % if ($blosxom::meta{service}) {
-%   if ($blosxom::meta{servicegroup}) {
+%   if ($blosxom::meta{servicegroup} && $blosxom::meta{servicegroup} ne '$SERVICEGROUPNAME$') {
 <span class="servicegroup"><a href="$url/tags/$blosxom::meta{servicegroup}" title="Servicegroup $blosxom::meta{servicegroup}">$blosxom::meta{servicegroup}</a>/</span>\
 %   }
 <span class="service"><a href="$url/tags/$blosxom::meta{service}" title="Service $blosxom::meta{service}">$blosxom::meta{service}</a></span> \
