@@ -37,12 +37,12 @@ barf("Missing posts directory '$post_dir'\n") unless -d $post_dir;
 diag("post_dir: $post_dir\n");
 
 # Unset any nagios variable literals
-undef $hostname     if $hostname     && $hostname     =~ m/^\$\w+\$$/;
-undef $hostgroup    if $hostgroup    && $hostgroup    =~ m/^\$\w+\$$/;
-undef $service      if $service      && $service      =~ m/^\$\w+\$$/;
-undef $servicegroup if $servicegroup && $servicegroup =~ m/^\$\w+\$$/;
-undef $state        if $state        && $state        =~ m/^\$\w+\$$/;
-undef $contact      if $contact      && $contact      =~ m/^\$\w+\$$/;
+$hostname = ''      if $hostname     && $hostname     =~ m/^\$\w+\$$/;
+$hostgroup = ''     if $hostgroup    && $hostgroup    =~ m/^\$\w+\$$/;
+$service = ''       if $service      && $service      =~ m/^\$\w+\$$/;
+$servicegroup = ''  if $servicegroup && $servicegroup =~ m/^\$\w+\$$/;
+$state = ''         if $state        && $state        =~ m/^\$\w+\$$/;
+$contact = ''       if $contact      && $contact      =~ m/^\$\w+\$$/;
 
 # Build filename
 my @filename = ();
@@ -59,6 +59,20 @@ diag("filename: $filename\n");
 
 my $post_file = File::Spec->catfile( $post_dir, $filename);
 diag("post_file: $post_file\n");
+
+# If post file already exists, we want to merge contacts in that file with ours
+if (-f $post_file) {
+  my $fh = IO::File->new( $post_file, 'r' )
+    or barf("Cannot open post file '$post_file' for reading: $!");
+  while (my $header = <$fh>) {
+    chomp $header;
+    if ($header =~ m/^Contact:\s*(\w.*?)\s*$/) {
+      $contact = $contact ? "$1, $contact" : $1;
+      $contact = join(', ', sort split(/,\s*/, $contact));
+      last;
+    }
+  }
+}
 
 my $fh = IO::File->new( $post_file, 'w' )
   or barf("Cannot open output file '$post_file': $!");
