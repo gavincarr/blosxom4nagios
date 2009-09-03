@@ -99,8 +99,7 @@ diag("done.\n");
 
 # For debugging, warn via syslog
 sub diag {
-  return unless $verbose;
-  warning(@_);
+  warning(@_) if $verbose;
 }
 
 sub barf {
