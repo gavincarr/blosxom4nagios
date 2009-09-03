@@ -36,6 +36,15 @@ my $post_dir = shift @ARGV;
 barf("Missing posts directory '$post_dir'\n") unless -d $post_dir;
 diag("post_dir: $post_dir\n");
 
+# Unset any nagios variable literals
+undef $hostname     if $hostname     && $hostname     =~ m/^\$\w+\$$/;
+undef $hostgroup    if $hostgroup    && $hostgroup    =~ m/^\$\w+\$$/;
+undef $service      if $service      && $service      =~ m/^\$\w+\$$/;
+undef $servicegroup if $servicegroup && $servicegroup =~ m/^\$\w+\$$/;
+undef $state        if $state        && $state        =~ m/^\$\w+\$$/;
+undef $contact      if $contact      && $contact      =~ m/^\$\w+\$$/;
+
+# Build filename
 my @filename = ();
 push @filename, $datetime if $datetime;
 push @filename, $service ? 'SERVICE' : 'HOST';
