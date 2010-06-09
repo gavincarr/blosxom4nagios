@@ -1,2 +1,4 @@
 #!/bin/sh
-rsync -rltvcO --exclude=posts --exclude=state --exclude-from=EXCLUDE $2 $3 * $1:/var/log/nagios/blosxom
+HOST=$1
+shift
+rsync -rltvcO --exclude=posts --exclude=state --exclude-from=EXCLUDE $* * $HOST:/var/log/nagios/blosxom
