@@ -9,6 +9,7 @@ package tags;
 
 use strict;
 use File::stat;
+use Data::Dumper;
 
 # Uncomment next line to enable debug output (don't uncomment debug() lines)
 #use Blosxom::Debug debug_level => 2;
