@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 # Blosxom
-# Author: Rael Dornfest (2002-2003), The Blosxom Development Team (2005-2008)
-# Version: 2.1.2 ($Id: blosxom.cgi,v 1.88 2008/11/13 17:19:51 alfie Exp $)
+# Author: Rael Dornfest (2002-2003), The Blosxom Development Team (2005-2009)
+# Version: 2.1.2 ($Id: blosxom.cgi,v 1.98 2009/07/19 17:18:37 xtaran Exp $)
 # Home/Docs/Licensing: http://blosxom.sourceforge.net/
 # Development/Downloads: http://sourceforge.net/projects/blosxom
 
@@ -75,12 +75,16 @@ $blog_encoding = "UTF-8";
 # Where are this blog's entries kept?
 $datadir = "/Library/WebServer/Documents/blosxom";
 
-# What's my preferred base URL for this blog (leave blank for automatic)?
+# What's my preferred base URL for this blog (leave blank for
+# automatic)?
 $url = "";
 
 # Should I stick only to the datadir for items or travel down the
 # directory hierarchy looking for items?  If so, to what depth?
-# 0 = infinite depth (aka grab everything), 1 = datadir only, n = n levels down
+#
+# 0 = infinite depth (aka grab everything), 1 = datadir only,
+# n = n levels down
+
 $depth = 0;
 
 # How many entries should I show on the home page?
@@ -97,8 +101,8 @@ $show_future_entries = 0;
 
 # --- Plugins (Optional) -----
 
-# File listing plugins blosxom should load
-# (if empty blosxom will load all plugins in $plugin_dir and $plugin_path directories)
+# File listing plugins blosxom should load (if empty blosxom will load
+# all plugins in $plugin_dir and $plugin_path directories)
 $plugin_list = "";
 
 # Where are my plugins kept?
@@ -107,8 +111,8 @@ $plugin_dir = "";
 # Where should my plugins keep their state information?
 $plugin_state_dir = "$plugin_dir/state";
 
-# Additional plugins location
-# List of directories, separated by ';' on windows, ':' everywhere else
+# Additional plugins location. A list of directories, separated by ';'
+# on windows, ':' everywhere else.
 $plugin_path = "";
 
 # --- Static Rendering -----
@@ -116,7 +120,8 @@ $plugin_path = "";
 # Where are this blog's static files to be created?
 $static_dir = "/Library/WebServer/Documents/blog";
 
-# What's my administrative password (you must set this for static rendering)?
+# What's my administrative password (you must set this for static
+# rendering)?
 $static_password = "";
 
 # What flavours should I generate statically?
@@ -126,8 +131,21 @@ $static_password = "";
 # 0 = no, 1 = yes
 $static_entries = 0;
 
-# Should I encode entities for xml content-types? (plugins can turn this off if they do it themselves)
+# --- Advanced Encoding Options -----
+
+# Should I encode entities for xml content-types? (plugins can turn
+# this off if they do it themselves)
 $encode_xml_entities = 1;
+
+# Should I encode 8 bit special characters, e.g. umlauts in URLs, e.g.
+# convert an ISO-Latin-1 \"o to %F6? (off by default for now; plugins
+# can change this, too)
+$encode_8bit_chars = 0;
+
+# RegExp matching all characters which should be URL encoded in links.
+# Defaults to anything but numbers, letters, slash, colon, dash,
+# underscore and dot.
+$url_escape_re = qr([^-/a-zA-Z0-9:._]);
 
 # --------------------------------
 
@@ -178,8 +196,54 @@ development was picked up by a team of dedicated users of blosxom since
 =cut
 
 
-use vars
-    qw! $version $blog_title $blog_description $blog_language $blog_encoding $datadir $url %template $template $depth $num_entries $file_extension $default_flavour $static_or_dynamic $config_dir $plugin_list $plugin_path $plugin_dir $plugin_state_dir @plugins %plugins $static_dir $static_password @static_flavours $static_entries $path_info_full $path_info $path_info_yr $path_info_mo $path_info_da $path_info_mo_num $flavour $static_or_dynamic %month2num @num2month $interpolate $entries $output $header $show_future_entries %files %indexes %others $encode_xml_entities $content_type !;
+use vars qw!
+    $version
+    $blog_title
+    $blog_description
+    $blog_language
+    $blog_encoding
+    $datadir
+    $url
+    %template
+    $template
+    $depth
+    $num_entries
+    $file_extension
+    $default_flavour
+    $static_or_dynamic
+    $config_dir
+    $plugin_list
+    $plugin_path
+    $plugin_dir
+    $plugin_state_dir
+    @plugins
+    %plugins
+    $static_dir
+    $static_password
+    @static_flavours
+    $static_entries
+    $path_info_full
+    $path_info
+    $path_info_yr
+    $path_info_mo
+    $path_info_da
+    $path_info_mo_num
+    $flavour
+    %month2num
+    @num2month
+    $interpolate
+    $entries
+    $output
+    $header
+    $show_future_entries
+    %files
+    %indexes
+    %others
+    $encode_xml_entities
+    $encode_8bit_chars
+    $url_escape_re
+    $content_type
+!;
 
 use strict;
 use FileHandle;
@@ -188,7 +252,7 @@ use File::stat;
 use Time::Local;
 use CGI qw/:standard :netscape/;
 
-$version = "2.1.2";
+$version = "2.1.2+dev";
 
 # Load configuration from $ENV{BLOSXOM_CONFIG_DIR}/blosxom.conf, if it exists
 my $blosxom_config;
@@ -482,6 +546,7 @@ sub load_template {
 # Define default entries subroutine
 $entries = sub {
     my ( %files, %indexes, %others );
+    my $param_all = param('-all');
     find(
         sub {
             my $d;
@@ -509,17 +574,20 @@ $entries = sub {
                 $files{$File::Find::name} = $mtime;
 
                 # static rendering bits
-                my $static_file
-                    = "$static_dir/$1/index." . $static_flavours[0];
-                if (   param('-all')
-                    or !-f $static_file
-                    or stat($static_file)->mtime < $mtime )
+                if ($static_or_dynamic eq 'static')
                 {
-                    $indexes{$1} = 1;
-                    $d = join( '/', ( nice_date($mtime) )[ 5, 2, 3 ] );
-                    $indexes{$d} = $d;
-                    $indexes{ ( $1 ? "$1/" : '' ) . "$2.$file_extension" } = 1
-                        if $static_entries;
+                    my $static_file
+                        = "$static_dir/$1/index." . $static_flavours[0];
+                    if (   $param_all
+                        or !-f $static_file
+                        or stat($static_file)->mtime < $mtime )
+                    {
+                        $indexes{$1} = 1;
+                        $d = join( '/', ( nice_date($mtime) )[ 5, 2, 3 ] );
+                        $indexes{$d} = $d;
+                        $indexes{ ( $1 ? "$1/" : '' ) . "$2.$file_extension" } = 1
+                            if $static_entries;
+                    }
                 }
             }
 
@@ -550,10 +618,7 @@ my ( $files, $indexes, $others ) = &$entries();
 %indexes = %$indexes;
 
 # Static
-if (    !$ENV{GATEWAY_INTERFACE}
-    and param('-password')
-    and $static_password
-    and param('-password') eq $static_password )
+if ($static_or_dynamic eq 'static')
 {
 
     param('-quiet') or print "Blosxom is generating static index pages...\n";
@@ -658,7 +723,7 @@ sub generate {
         package blosxom;
         my $template = shift;
         # Interpolate scalars, namespaced scalars, and hash/hashref scalars
-        $template =~ s/(\$\w+(?:::\w+)*(?:(?:->)?{(['"]?)[-\w]+\2})?)/"defined $1 ? $1 : ''"/gee;
+        $template =~ s/(\$\w+(?:::\w+)*(?:(?:->)?{([\'\"]?)[-\w]+\2})?)/"defined $1 ? $1 : ''"/gee;
         return $template;
     };
 
@@ -793,18 +858,20 @@ sub generate {
                 }
             }
 
+	    # Save unescaped versions and allow them to be used in
+	    # flavour templates.
+	    use vars qw/$url_unesc $path_unesc $fn_unesc/;
+	    $url_unesc  = $url;
+	    $path_unesc = $path;
+	    $fn_unesc   = $fn;
+
+	    # Fix special characters in links inside XML content
             if ( $encode_xml_entities &&
                  $content_type =~ m{\bxml\b} &&
                  $content_type !~ m{\bxhtml\b} ) {
                 # Escape special characters inside the <link> container
 
-                # The following line should be moved more towards to top for
-                # performance reasons -- Axel Beckert, 2008-07-22
-                my $url_escape_re = qr([^-/a-zA-Z0-9:._]);
-
-                $url   =~ s($url_escape_re)(sprintf('%%%02X', ord($&)))eg;
-                $path  =~ s($url_escape_re)(sprintf('%%%02X', ord($&)))eg;
-                $fn    =~ s($url_escape_re)(sprintf('%%%02X', ord($&)))eg;
+		&url_escape_url_path_and_fn();
 
                 # Escape <, >, and &, and to produce valid RSS
                 $title = blosxom_html_escape($title);
@@ -812,6 +879,11 @@ sub generate {
                 $url   = blosxom_html_escape($url);
                 $path  = blosxom_html_escape($path);
                 $fn    = blosxom_html_escape($fn);
+            }
+
+	    # Fix special characters in links inside XML content
+            if ($encode_8bit_chars) {
+		&url_escape_url_path_and_fn();
             }
 
             $story = &$interpolate($story);
@@ -869,6 +941,12 @@ sub nice_date {
         . sprintf( "%02d", ( $offset % 3600 ) / 60 );
 
     return ( $dw, $mo, $mo_num, $da, $ti, $yr, $utc_offset );
+}
+
+sub url_escape_url_path_and_fn {
+    $url   =~ s($url_escape_re)(sprintf('%%%02X', ord($&)))eg;
+    $path  =~ s($url_escape_re)(sprintf('%%%02X', ord($&)))eg;
+    $fn    =~ s($url_escape_re)(sprintf('%%%02X', ord($&)))eg;
 }
 
 # Default HTML and RSS template bits
