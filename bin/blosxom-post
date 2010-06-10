@@ -7,8 +7,10 @@ use strict;
 use Getopt::Std;
 use File::Basename;
 use File::Spec;
+#use File::Path;
 use IO::File;
 use Logger::Syslog;
+use Time::Piece;
 
 my @ARGV1 = ( @ARGV );
 
@@ -44,9 +46,23 @@ $servicegroup = ''  if $servicegroup && $servicegroup =~ m/^\$\w+\$$/;
 $state = ''         if $state        && $state        =~ m/^\$\w+\$$/;
 $contact = ''       if $contact      && $contact      =~ m/^\$\w+\$$/;
 
+# If $datetime set, try and parse and reformat
+my $t = eval { Time::Piece->strptime($datetime, '%m-%d-%Y-%H:%M:%S') }
+  if $datetime;
+$t ||= localtime;
+$datetime = $t->strftime('%Y%m%dT%H%M%S');
+my $epoch = $t->epoch;
+
+# Post to $date subdirectory
+#my $date  = substr($datetime,0,6);
+#$post_dir = File::Spec->catdir( $post_dir, $date );
+#-d $post_dir or mkpath( $post_dir )
+#  or barf("Can't mkpath post_dir $post_dir: $!");
+#diag("post_dir: $post_dir\n");
+
 # Build filename
 my @filename = ();
-push @filename, $datetime if $datetime;
+push @filename, $datetime, $epoch;
 push @filename, $service ? 'SERVICE' : 'HOST';
 push @filename, $hostname if $hostname;
 push @filename, $service  if $service;
