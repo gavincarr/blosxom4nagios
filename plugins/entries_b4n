@@ -1,0 +1,149 @@
+# Blosxom Plugin: entries_b4n
+# Author(s): Gavin Carr <gavin@openfusion.com.au>
+# Version: 0.001
+# Documentation: See the bottom of this file or type: perldoc entries_b4n
+
+use Blosxom::Include qw(entries_b4n);
+
+package entries_b4n;
+
+use strict;
+use File::Find;
+use File::stat;
+use CGI qw(param);
+
+# Uncomment next line to enable debug output (don't uncomment debug() lines)
+#use Blosxom::Debug debug_level => 2;
+
+my %config = ();
+
+# --- Configurable variables -----
+
+# Number of (most-recent) entries to be returned
+$config{entries_limit} = 10_000;
+
+# --------------------------------
+# __END_CONFIG__
+
+sub start { 1 }
+
+sub entries {
+  return sub {
+    my ( %files, %indexes, %others );
+    my $param_all = param('-all');
+    find({ 
+          preprocess => sub {
+            # Preprocess in filename/date reversed order
+            (sort { $b cmp $a } @_)[ 0 .. 4999 ];
+          },
+          wanted => sub {
+            my $d;
+            my $curr_depth = $File::Find::dir =~ tr[/][];
+            return if $blosxom::depth and $curr_depth > $blosxom::depth;
+
+            if (
+                # a match
+                $File::Find::name
+                =~ m!^$blosxom::datadir/(?:(.*)/)?(.+)\.$blosxom::file_extension$!
+
+                # not an index, .file, and is readable
+                and $2 ne 'index' and $2 !~ /^\./ and ( -r $File::Find::name )
+                )
+            {
+                # set modification time
+                my $mtime = (split /-/, $_)[1];
+                $mtime = stat($File::Find::name)->mtime 
+                  unless $mtime && $mtime > 1_000_000_000;
+                return unless $mtime;
+
+                # to show or not to show future entries
+                return unless ( $blosxom::show_future_entries or $mtime < time );
+
+                # add the file and its associated mtime to the list of files
+                $files{$File::Find::name} = $mtime;
+
+                # static rendering bits
+                if ($blosxom::static_or_dynamic eq 'static')
+                {
+                    my $static_file
+                        = "$blosxom::static_dir/$1/index." . $blosxom::static_flavours[0];
+                    if (   $param_all
+                        or !-f $blosxom::static_file
+                        or stat($blosxom::static_file)->mtime < $mtime )
+                    {
+                        $indexes{$1} = 1;
+                        $d = join( '/', ( nice_date($mtime) )[ 5, 2, 3 ] );
+                        $indexes{$d} = $d;
+                        $indexes{ ( $1 ? "$1/" : '' ) . "$2.$blosxom::file_extension" } = 1
+                            if $blosxom::static_entries;
+                    }
+                }
+            }
+
+            # not an entries match
+            elsif ( !-d $File::Find::name and -r $File::Find::name ) {
+                $others{$File::Find::name} = stat($File::Find::name)->mtime;
+            }
+          }
+        },
+        $blosxom::datadir
+    );
+
+    return ( \%files, \%indexes, \%others );
+  };
+}
+
+sub sort {
+  return sub {
+    my ($files_ref) = @_;
+    return sort { $b cmp $a } keys %$files_ref;
+  };
+}
+
+1;
+
+__END__
+
+=head1 NAME
+
+entries_b4n: blosxom entries plugin to return the most-recent 
+entries_limit entries for blosxom4nagios
+
+=head1 SYNOPSIS
+
+entries_b4n is a blosxom entries plugin for finding and returning the 
+most recent entries_limit entries for blosxom4nagios. It is not a 
+general-purpose plugin, as it relies on the specific filename format 
+used by blosxom4nagios. But it is fast. :-)
+
+=head1 AUTHOR
+
+Gavin Carr <gavin@openfusion.com.au>, http://www.openfusion.net/
+
+=head1 LICENSE
+
+Copyright 2007, Gavin Carr.
+
+This plugin is licensed under the same terms as blosxom itself i.e.
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+=cut
+
+# vim:ft=perl
